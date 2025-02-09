@@ -1,0 +1,609 @@
+/* General */
+:root {
+    --sb-color: #6531a0;
+    --sb-secondary-color: #3985f7;
+    --rft-color: #12be60;
+    --rft-color-sec: #2e8a57;
+    --defect-color: #ff971f;
+    --defect-color-sec: #d88202;
+    --reject-color: #fa4456;
+    --reject-color-sec: #d33141;
+    --rework-color: #447efa;
+    --rework-color-sec: #3169e4;
+    --pale-color: #ebebeb;
+    --light-color: #fbfbfb;
+    --dark-color: #212529;
+}
+
+.hidden {
+    display: none !important;
+}
+
+html, body {
+    margin: 0;
+}
+
+.main {
+    margin-bottom: 200px;
+}
+
+.back {
+    position: fixed;
+    border-radius: 30%;
+    padding: 15px 20px;
+    bottom: 20px;
+    left: 30px;
+    box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;
+    z-index: 1050;
+    transition: 0.3s;
+}
+
+.back:hover {
+    opacity: 0.6;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.pagination .page-item > .page-link {
+    color: #212529 !important;
+}
+
+.pagination .page-item.active > .page-link {
+    background-color: #212529 !important;
+    border-color: #212529 !important;
+    color: #fbfbfb !important;
+}
+
+/* Loading */
+.loading {
+    border: 16px solid #f3f3f3;
+    border-radius: 50%;
+    border-top: 16px solid var(--reject-color-sec);
+    width: 120px;
+    height: 120px;
+    -webkit-animation: spin 1s linear infinite;
+    animation: spin 1s linear infinite;
+}
+
+.loading-small {
+    border: 5px solid #f3f3f3;
+    border-radius: 50%;
+    border-top: 5px solid var(--reject-color-sec);
+    width: 30px;
+    height: 30px;
+    -webkit-animation: spin 1s linear infinite;
+    animation: spin 1s linear infinite;
+}
+
+.loading-container {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.loading-container-fixed {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 5;
+}
+
+.loading-container-fullscreen {
+    background-color: #212529d2;
+    position: fixed;
+    vertical-align: middle;
+    z-index: 999999;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+}
+
+@-webkit-keyframes spin {
+    0% { -webkit-transform: rotate(0deg); }
+    100% { -webkit-transform: rotate(360deg); }
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Disable Number Arrow */
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type=number] {
+  -moz-appearance: textfield;
+}
+
+/* Background Color */
+.bg-sb {
+    background-color: var(--sb-color);
+}
+
+.bg-sb-secondary {
+    background-color: var(--sb-secondary-color);
+}
+
+.bg-rft {
+    background: var(--rft-color) !important;
+}
+
+.bg-defect {
+    background: var(--defect-color) !important;
+}
+
+.bg-reject {
+    background: var(--reject-color) !important;
+}
+
+.bg-rework {
+    background: var(--rework-color) !important;
+}
+
+.bg-pale {
+    background-color: var(--pale-color) !important;
+}
+
+/* Text Color */
+.text-sb {
+    color: var(--sb-color);
+}
+
+.text-sb-secondary {
+    color: var(--sb-secondary-color);
+}
+
+.text-rft {
+    color: var(--rft-color);
+}
+
+.text-defect {
+    color: var(--defect-color);
+}
+
+.text-reject {
+    color: var(--reject-color);
+}
+
+.text-rework {
+    color: var(--rework-color);
+}
+
+/* Button Color */
+.btn-sb {
+    border-color: var(--sb-color);
+    background-color: var(--sb-color);
+    color: var(--light-color);
+}
+
+.btn-sb:hover {
+    border-color: var(--sb-color);
+    background-color: var(--light-color);
+    color: var(--sb-color);
+}
+
+.btn-sb-secondary {
+    border-color: var(--sb-secondary-color);
+    background-color: var(--sb-secondary-color);
+    color: var(--light-color);
+}
+
+.btn-sb-secondary:hover {
+    border-color: var(--sb-secondary-color);
+    background-color: var(--light-color);
+    color: var(--sb-secondary-color);
+}
+
+.btn-sb-secondary-outline {
+    border-color: var(--sb-secondary-color);
+    background-color: var(--light-color);
+    color: var(--sb-secondary-color);
+}
+
+.btn-sb-secondary-outline:hover {
+    border-color: var(--sb-secondary-color);
+    background-color: var(--sb-secondary-color);
+    color: var(--light-color);
+}
+
+.btn-rft {
+    border-color: var(--rft-color-sec) !important;
+    background: var(--light-color) !important;
+    color: var(--rft-color) !important;
+    transition: 0.3s;
+}
+
+.btn-rft:hover, .btn-rft:focus, .btn-rft.active {
+    scale: 1.03;
+    transition: 0.3s;
+    color: var(--light-color) !important;
+    background: var(--rft-color) !important;
+}
+
+.btn-defect {
+    border-color: var(--defect-color-sec) !important;
+    background: var(--light-color) !important;
+    color: var(--defect-color) !important;
+    transition: 0.3s;
+}
+
+.btn-defect:hover, .btn-defect:focus, .btn-defect.active {
+    scale: 1.03;
+    transition: 0.3s;
+    color: var(--light-color) !important;
+    background: var(--defect-color) !important;
+}
+
+.btn-reject {
+    border-color: var(--reject-color-sec) !important;
+    background: var(--light-color) !important;
+    color: var(--reject-color) !important;
+    transition: 0.3s;
+}
+
+.btn-reject:hover, .btn-reject:focus, .btn-reject.active {
+    scale: 1.03;
+    transition: 0.3s;
+    color: var(--light-color) !important;
+    background: var(--reject-color) !important;
+}
+
+.btn-rework {
+    border-color: var(--rework-color-sec) !important;
+    background: var(--light-color) !important;
+    color: var(--rework-color) !important;
+    transition: 0.3s;
+}
+
+.btn-rework:hover, .btn-rework:focus, .btn-rework.active {
+    scale: 1.03;
+    transition: 0.3s;
+    color: var(--light-color) !important;
+    background: var(--rework-color) !important;
+}
+
+.btn-pale {
+    background-color: var(--pale-color) !important;
+    color: var(--dark-color) !important;
+    transition: 0.3s;
+}
+
+.btn-pale:hover {
+    opacity: 0.5 !important;
+    transition: 0.3s;
+}
+
+/* Yes/No Button */
+.btn-yes {
+    border-color: #12be60;
+    background-color: #fbfbfb;
+    color: #12be60;
+    transition: 0.3s;
+}
+
+.btn-yes:hover {
+    border-color: #fbfbfb;
+    background-color: #12be60;
+    color: #fbfbfb;
+    transition: 0.3s;
+}
+
+.btn-no {
+    border-color: #fa4456;
+    background-color: #fbfbfb;
+    color: #fa4456;
+    transition: 0.3s;
+}
+
+.btn-no:hover {
+    border-color: #fbfbfb;
+    background-color: #fa4456;
+    color: #fbfbfb;
+    transition: 0.3s;
+}
+
+/* Login */
+.login-card.card {
+    margin: 85px auto;
+    border-radius: 30px;
+    overflow: hidden;
+    box-shadow: 1px 3px 10px 1px rgba(0, 0, 0, 0.1);
+    max-width: 70vw;
+}
+
+.login-form label {
+    color: var(--sb-color);
+    font-weight: 600;
+}
+
+.login-form input {
+    border-color: var(--sb-color);
+}
+
+.login-form>div:last-child>div:nth-child(2)>span {
+    font-size: 14px;
+}
+
+/* Navbar */
+.navbar {
+    border-bottom: 3px solid var(--reject-color-sec);
+    padding-top: 0;
+    padding-bottom: 0;
+}
+
+.navbar .dropdown-toggle {
+    border: var(--bs-border-width) solid var(--bs-border-color) !important;
+}
+
+.navbar .dropdown-toggle:hover {
+    border: var(--bs-border-width) solid var(--bs-border-color) !important;
+}
+
+.navbar .dropdown-toggle:active {
+    border: var(--bs-border-width) solid var(--bs-border-color) !important;
+}
+
+.navbar .dropdown-toggle:focus {
+    border: var(--bs-border-width) solid var(--bs-border-color) !important;
+}
+
+.navbar .dropdown-item:focus {
+    background-color: inherit;
+}
+
+.dropdown-item:hover {
+    cursor: pointer;
+}
+
+/* Production Info */
+.production-info {
+    font-size: 13px;
+}
+
+/* Production Panel */
+.production-panel .card-custom {
+    background: #0ed869;
+    border-radius: 15px 0 0 15px;
+    padding: 50px;
+    box-shadow: 3px 6px 9px -3px rgba(0, 0, 0, 0.1);
+}
+
+.production-panel .card-custom:hover {
+    opacity: 0.9;
+    cursor: pointer;
+}
+
+.production-panel .card-custom p {
+    margin: 0;
+    font-size: 25px;
+    font-weight: 600;
+}
+
+.production-panel .card-custom-footer {
+    border-radius: 0 15px 15px 0;
+}
+
+.production-panel .card-custom-footer p {
+    border-radius: 0 15px 15px 0;
+    font-weight: 600;
+}
+
+.production-panel .card-custom-footer .single-item {
+    border-radius: 0 15px 15px 0 !important;
+}
+
+.production-panel .card-custom-footer .multi-item.upper {
+    border-radius: 0 15px 0 0 !important;
+}
+
+.production-panel .card-custom-footer .multi-item.lower {
+    border-radius: 0 0 15px 0 !important;
+}
+
+/* Production Input */
+.production-input p{
+    font-weight: 600;
+}
+
+.qty-input {
+    width: 100%;
+    height: auto;
+    text-align: center;
+    font-size: 40px;
+    border: none;
+    padding: 45px 0;
+}
+
+.size-input input {
+    display: none;
+}
+
+.size-input input:checked + .btn-rft {
+    scale: 1.03;
+    transition: 0.3s;
+    color: var(--light-color) !important;
+    background: var(--rft-color) !important;
+}
+
+.size-input input:checked + .btn-defect {
+    scale: 1.03;
+    transition: 0.3s;
+    color: var(--light-color) !important;
+    background: var(--defect-color) !important;
+}
+
+.size-input input:checked + .btn-reject {
+    scale: 1.03;
+    transition: 0.3s;
+    color: var(--light-color) !important;
+    background: var(--reject-color) !important;
+}
+
+/* Order List */
+.order-list .card {
+    box-shadow: rgba(0, 0, 0, 0.15) 1.95px 1.95px 2.6px;
+    transition: 0.3s;
+}
+
+.order-list .card:hover {
+    opacity: 0.6;
+    transition: 0.3s;
+}
+
+.order {
+    text-decoration: none;
+}
+
+/* Select Defect Area */
+.select-defect-area {
+    display: none;
+    position: fixed;
+    z-index: 9999;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: #21252983;
+}
+
+.select-defect-area .defect-area-position-container {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 15px;
+}
+
+.select-defect-area .defect-area-img-container {
+    position: relative;
+    display: inline-block;
+    justify-content: center;
+    align-items: center;
+    border: 5px solid var(--light-color);
+    margin-top: 50px;
+}
+
+.select-defect-area .defect-area-img-container .defect-area-img {
+    width: auto;
+    height: 450px;
+}
+
+.select-defect-area .defect-area-img-container .defect-area-img-point {
+    display: none;
+    position: absolute;
+    width: 50px;
+    height: 50px;
+    background-color: var(--defect-color);
+    border: 3px solid var(--defect-color-sec);
+    border-radius: 50%;
+    opacity: 65%;
+}
+
+/* Show Defect Area */
+.show-defect-area {
+    display: none;
+    position: fixed;
+    z-index: 9999;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: #21252983;
+}
+
+.show-defect-area .defect-area-img-container {
+    position: relative;
+    display: inline-block;
+    justify-content: center;
+    align-items: center;
+    margin-top: 50px;
+}
+
+.show-defect-area .defect-area-img-container .defect-area-img {
+    width: auto;
+    height: 450px;
+}
+
+.show-defect-area .defect-area-img-container .defect-area-img-point {
+    display: none;
+    position: absolute;
+    width: 50px;
+    height: 50px;
+    background-color: var(--defect-color);
+    border: 3px solid var(--defect-color-sec);
+    border-radius: 50%;
+    opacity: 80%;
+}
+
+.show-defect-area .hide-defect-area-img {
+    position: fixed;
+    z-index: 3;
+    top: 30px;
+    right: 60px;
+    box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;
+}
+
+/* Rework Defect Image */
+.scroll-defect-area-img {
+    max-width: 100%;
+    overflow: auto;
+}
+
+.all-defect-area-img-container {
+    position: relative;
+    display: inline-block;
+    justify-content: center;
+    align-items: center;
+    margin: auto;
+    width: 100%;
+    overflow: hidden;
+}
+
+.all-defect-area-img {
+    width: 100%;
+    height: auto;
+}
+
+.all-defect-area-img-point {
+    position: absolute;
+    width: 50px;
+    height: 50px;
+    background-color: var(--defect-color);
+    border: 3px solid var(--defect-color-sec);
+    border-radius: 50%;
+    opacity: 80%;
+}
+
+#defect-area-select2 .select2-container--bootstrap-5 .select2-selection {
+    border-radius: 5px 0 0 5px !important;
+}
+
+/* Footer */
+.footer {
+    border-top: 1px solid #d2d2d2;
+    background: rgba(255, 255, 255, 0.7);
+}
+
+.copyright {
+    position: absolute;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+@media (max-width:768px) {
+    .login-card.card {
+        max-width: 90vw;
+    }
+}

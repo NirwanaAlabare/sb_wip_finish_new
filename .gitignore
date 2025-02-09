@@ -1,0 +1,28 @@
+/node_modules
+/public/hot
+/public/storage
+/storage/*.key
+# Don't ignore illuminate foundation auth
+/vendor/*
+!/vendor/laravel/
+/vendor/laravel/*
+!/vendor/laravel/framework
+/vendor/laravel/framework/*
+!/vendor/laravel/framework/src
+/vendor/laravel/framework/src/*
+!/vendor/laravel/framework/src/Illuminate
+/vendor/laravel/framework/src/Illuminate/*
+!/vendor/laravel/framework/src/Illuminate/Foundation
+/vendor/laravel/framework/src/Illuminate/Foundation/*
+!/vendor/laravel/framework/src/Illuminate/Foundation/Auth
+# /Don't ignore illuminate foundation auth
+.env
+.env.backup
+.phpunit.result.cache
+docker-compose.override.yml
+Homestead.json
+Homestead.yaml
+npm-debug.log
+yarn-error.log
+/.idea
+/.vscode
