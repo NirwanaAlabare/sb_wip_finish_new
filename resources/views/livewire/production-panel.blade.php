@@ -165,11 +165,11 @@
         @endif
 
         {{-- Reject --}}
-        {{-- @if ($reject) --}}
+        @if ($reject)
         <div class="{{ $reject ? '' : 'd-none' }}">
             @livewire('reject', ["orderWsDetailSizes" => $orderWsDetailSizes])
         </div>
-        {{-- @endif --}}
+        @endif
 
         {{-- Rework --}}
         @if ($rework)
@@ -277,9 +277,9 @@
             @this.updateOrder();
         });
 
-        window.addEventListener("focus", () => {
-            restrictYesterdayMasterPlan();
-        });
+        // window.addEventListener("focus", () => {
+        //     restrictYesterdayMasterPlan();
+        // });
 
         // Pad 2 Digits
         function pad(n) {

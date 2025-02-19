@@ -166,6 +166,15 @@ function hideDefectModal() {
     $("#defect-modal").modal("hide");
 }
 
+// reject modal
+function showRejectModal() {
+    $("#reject-modal").modal("show");
+}
+
+function hideRejectModal() {
+    $("#reject-modal").modal("hide");
+}
+
 // undo modal
 function showUndoModal() {
     $("#undo-modal").modal("show");
@@ -261,6 +270,70 @@ function reworkConfirmation() {
                 title: 'REWORK Canceled',
                 confirmButtonText: 'Ok',
                 confirmButtonColor: '#447efa',
+            })
+        }
+    });
+}
+
+// mass reject modal
+function showMassRejectModal() {
+    $("#mass-reject-modal").modal("show");
+}
+
+function hideMassRejectModal() {
+    $("#mass-reject-modal").modal("hide");
+}
+
+// all reject modal
+function showAllRejectModal() {
+    $("#all-reject-modal").modal("show");
+}
+
+function hideAllRejectModal() {
+    $("#all-reject-modal").modal("hide");
+}
+
+// reject
+function rejectConfirmation() {
+    Swal.fire({
+        icon: 'info',
+        title: 'REJECT this defect?',
+        html: `<table class="table text-start w-auto mx-auto">
+                    <tr>
+                        <td>ID<td>
+                        <td>:<td>
+                        <td>?<td>
+                    <tr>
+                    <tr>
+                        <td>Size<td>
+                        <td>:<td>
+                        <td>?<td>
+                    <tr>
+                    <tr>
+                        <td>Defect Type<td>
+                        <td>:<td>
+                        <td>?<td>
+                    <tr>
+                    <tr>
+                        <td>Defect Area<td>
+                        <td>:<td>
+                        <td>?<td>
+                    <tr>
+                </table>`,
+        showConfirmButton: true,
+        showDenyButton: true,
+        confirmButtonText: 'Reject',
+        confirmButtonColor: '#fa4456',
+        denyButtonText: 'Batal',
+    }).then((result) => {
+        if (result.isConfirmed) {
+            location.reload;
+        } else if (result.isDenied) {
+            Swal.fire({
+                icon: 'info',
+                title: 'REWORK Canceled',
+                confirmButtonText: 'Ok',
+                confirmButtonColor: '#fa4456',
             })
         }
     });
@@ -502,6 +575,34 @@ function hideSelectDefectArea() {
     selectDefectArea.style.alignItems = null;
 }
 
+// Select Reject Area
+function showSelectRejectArea(rejectAreaImage) {
+    document.body.style.maxHeight = '100%';
+    document.body.style.overflow = 'hidden';
+
+    let rejectAreaImageElement = document.getElementById('reject-area-img');
+    rejectAreaImageElement.src = 'http://10.10.5.62:8080/erp/pages/prod_new/upload_files/'+rejectAreaImage;
+
+    let selectRejectArea = document.getElementById('select-reject-area');
+    selectRejectArea.style.display = 'flex';
+    selectRejectArea.style.flexDirection = 'column';
+    selectRejectArea.style.alignItems = 'center';
+}
+
+function hideSelectRejectArea() {
+    document.body.style.maxHeight = null;
+    document.body.style.overflow = null;
+
+    let rejectAreaImageElement = document.getElementById('reject-area-img');
+    rejectAreaImageElement.src = '';
+
+    let selectRejectArea = document.getElementById('select-reject-area');
+    selectRejectArea.style.display = 'none';
+    selectRejectArea.style.flexDirection = null;
+    selectRejectArea.style.justifyContent = null;
+    selectRejectArea.style.alignItems = null;
+}
+
 // Show Defect Area Image
 function showDefectAreaImage(defectAreaImage) {
     document.body.style.maxHeight = '100%';
@@ -571,48 +672,48 @@ if (document.getElementById("alert-sound")) {
             switch (hoursminutes) {
                 case "07:53" :
                     played = true;
-                    sound.play();
-                    showReminder(hoursminutes);
+                    // sound.play();
+                    // showReminder(hoursminutes);
                     break;
                 case "08:53" :
                     played = true;
-                    sound.play();
-                    showReminder(hoursminutes);
+                    // sound.play();
+                    // showReminder(hoursminutes);
                     break;
                 case "09:53" :
                     played = true;
-                    sound.play();
-                    showReminder(hoursminutes);
+                    // sound.play();
+                    // showReminder(hoursminutes);
                     break;
                 case "10:53" :
                     played = true;
-                    sound.play();
-                    showReminder(hoursminutes);
+                    // sound.play();
+                    // showReminder(hoursminutes);
                     break;
                 case "11:53" :
                     played = true;
-                    sound.play();
-                    showReminder(hoursminutes);
+                    // sound.play();
+                    // showReminder(hoursminutes);
                     break;
                 case "13:53" :
                     played = true;
-                    sound.play();
-                    showReminder(hoursminutes);
+                    // sound.play();
+                    // showReminder(hoursminutes);
                     break;
                 case "14:53" :
                     played = true;
-                    sound.play();
-                    showReminder(hoursminutes);
+                    // sound.play();
+                    // showReminder(hoursminutes);
                     break;
                 case "15:51" :
                     played = true;
-                    sound.play();
-                    showReminder(hoursminutes);
+                    // sound.play();
+                    // showReminder(hoursminutes);
                     break;
                 case "16:53" :
                     played = true;
-                    sound.play();
-                    showReminder(hoursminutes);
+                    // sound.play();
+                    // showReminder(hoursminutes);
                     break;
             }
         }

@@ -10,6 +10,7 @@ use App\Models\SignalBit\Defect;
 use App\Models\SignalBit\Reject;
 use App\Models\SignalBit\Rework;
 use App\Models\SignalBit\MasterPlan;
+use App\Models\SignalBit\OutputFinishing;
 
 class HistoryContent extends Component
 {
@@ -54,121 +55,120 @@ class HistoryContent extends Component
         //     LIMIT 10
         // "));
 
-        $latestOutputRfts = Rft::selectRaw('
-                output_rfts_packing.updated_at,
-                so_det.size as size,
-                count(output_rfts_packing.id) as total
-            ')->
-            leftJoin('master_plan', 'master_plan.id', '=', 'output_rfts_packing.master_plan_id')->
-            leftJoin('so_det', 'so_det.id', '=', 'output_rfts_packing.so_det_id')->
-            where('output_rfts_packing.status', 'normal');
-            if (Auth::user()->Groupp != 'ALLSEWING') {
-                $latestOutputRfts->where('master_plan.sewing_line', Auth::user()->username);
-            }
-            if ($this->masterPlan) {
-                $latestOutputRfts->where('master_plan.id', $this->masterPlan);
-            }
-        $latestRfts = $latestOutputRfts->whereRaw("DATE(output_rfts_packing.created_at) BETWEEN '".$this->dateFrom."' AND '".$this->dateTo."'")->
-            whereRaw("master_plan.tgl_plan BETWEEN '".$this->dateFrom."' AND '".$this->dateTo."'")->
-            groupBy("output_rfts_packing.updated_at", "so_det.size")->
-            orderBy("output_rfts_packing.updated_at", "desc")->
-            orderBy("output_rfts_packing.created_at", "desc")->
-            limit("5")->get();
+        // $latestOutputRfts = Rft::selectRaw('
+        //         output_rfts_packing.updated_at,
+        //         so_det.size as size,
+        //         count(output_rfts_packing.id) as total
+        //     ')->
+        //     leftJoin('master_plan', 'master_plan.id', '=', 'output_rfts_packing.master_plan_id')->
+        //     leftJoin('so_det', 'so_det.id', '=', 'output_rfts_packing.so_det_id')->
+        //     where('output_rfts_packing.status', 'normal');
+        //     if (Auth::user()->Groupp != 'ALLSEWING') {
+        //         $latestOutputRfts->where('master_plan.sewing_line', Auth::user()->username);
+        //     }
+        //     if ($this->masterPlan) {
+        //         $latestOutputRfts->where('master_plan.id', $this->masterPlan);
+        //     }
+        // $latestRfts = $latestOutputRfts->whereRaw("DATE(output_rfts_packing.created_at) BETWEEN '".$this->dateFrom."' AND '".$this->dateTo."'")->
+        //     whereRaw("master_plan.tgl_plan BETWEEN '".$this->dateFrom."' AND '".$this->dateTo."'")->
+        //     groupBy("output_rfts_packing.updated_at", "so_det.size")->
+        //     orderBy("output_rfts_packing.updated_at", "desc")->
+        //     orderBy("output_rfts_packing.created_at", "desc")->
+        //     limit("5")->get();
 
-        $latestOutputDefects = Defect::selectRaw('
-                output_defects_packing.updated_at,
+        $latestOutputDefects = OutputFinishing::selectRaw('
+                output_check_finishing.updated_at,
                 output_defect_types.defect_type,
                 output_defect_areas.defect_area,
                 master_plan.gambar,
-                output_defects_packing.defect_area_x,
-                output_defects_packing.defect_area_y,
+                output_check_finishing.defect_area_x,
+                output_check_finishing.defect_area_y,
                 so_det.size as size,
                 count(*) as total')->
-            leftJoin('output_product_types', 'output_product_types.id', '=', 'output_defects_packing.product_type_id')->
-            leftJoin('output_defect_types', 'output_defect_types.id', '=', 'output_defects_packing.defect_type_id')->
-            leftJoin('output_defect_areas', 'output_defect_areas.id', '=', 'output_defects_packing.defect_area_id')->
-            leftJoin('master_plan', 'master_plan.id', '=', 'output_defects_packing.master_plan_id')->
-            leftJoin('so_det', 'so_det.id', '=', 'output_defects_packing.so_det_id')->
-            where('output_defects_packing.defect_status', 'defect');
+            leftJoin('output_defect_types', 'output_defect_types.id', '=', 'output_check_finishing.defect_type_id')->
+            leftJoin('output_defect_areas', 'output_defect_areas.id', '=', 'output_check_finishing.defect_area_id')->
+            leftJoin('master_plan', 'master_plan.id', '=', 'output_check_finishing.master_plan_id')->
+            leftJoin('so_det', 'so_det.id', '=', 'output_check_finishing.so_det_id')->
+            where('output_check_finishing.status', 'defect');
             if (Auth::user()->Groupp != 'ALLSEWING') {
                 $latestOutputDefects->where('master_plan.sewing_line', Auth::user()->username);
             }
             if ($this->masterPlan) {
                 $latestOutputDefects->where('master_plan.id', $this->masterPlan);
             }
-        $latestDefects = $latestOutputDefects->whereRaw("DATE(output_defects_packing.created_at) BETWEEN '".$this->dateFrom."' AND '".$this->dateTo."'")->
+        $latestDefects = $latestOutputDefects->whereRaw("DATE(output_check_finishing.created_at) BETWEEN '".$this->dateFrom."' AND '".$this->dateTo."'")->
             whereRaw("master_plan.tgl_plan BETWEEN '".$this->dateFrom."' AND '".$this->dateTo."'")->
             groupBy(
-                "output_defects_packing.updated_at",
+                "output_check_finishing.updated_at",
                 "output_defect_types.defect_type",
                 "output_defect_areas.defect_area",
                 "master_plan.gambar",
-                "output_defects_packing.defect_area_x",
-                "output_defects_packing.defect_area_y",
+                "output_check_finishing.defect_area_x",
+                "output_check_finishing.defect_area_y",
                 "so_det.size"
             )->
-            orderBy("output_defects_packing.updated_at", "desc")->
-            orderBy("output_defects_packing.created_at", "desc")->
+            orderBy("output_check_finishing.updated_at", "desc")->
+            orderBy("output_check_finishing.created_at", "desc")->
             limit("5")->get();
 
-        $latestOutputRejects = Reject::selectRaw('output_rejects_packing.updated_at, so_det.size as size, count(*) as total')->
-            leftJoin('master_plan', 'master_plan.id', '=', 'output_rejects_packing.master_plan_id')->
-            leftJoin('so_det', 'so_det.id', '=', 'output_rejects_packing.so_det_id')->
-            where('master_plan.sewing_line', Auth::user()->username);
+        $latestOutputRejects = OutputFinishing::selectRaw('output_check_finishing.updated_at, so_det.size as size, count(*) as total')->
+            leftJoin('master_plan', 'master_plan.id', '=', 'output_check_finishing.master_plan_id')->
+            leftJoin('so_det', 'so_det.id', '=', 'output_check_finishing.so_det_id')->
+            where('master_plan.sewing_line', Auth::user()->username)->
+            where('output_check_finishing.status', 'rejected');
             if (Auth::user()->Groupp != 'ALLSEWING') {
                 $latestOutputRejects->where('master_plan.sewing_line', Auth::user()->username);
             }
             if ($this->masterPlan) {
                 $latestOutputRejects->where('master_plan.id', $this->masterPlan);
             }
-        $latestRejects = $latestOutputRejects->whereRaw("DATE(output_rejects_packing.created_at) BETWEEN '".$this->dateFrom."' AND '".$this->dateTo."'")->
+        $latestRejects = $latestOutputRejects->whereRaw("DATE(output_check_finishing.created_at) BETWEEN '".$this->dateFrom."' AND '".$this->dateTo."'")->
             whereRaw("master_plan.tgl_plan BETWEEN '".$this->dateFrom."' AND '".$this->dateTo."'")->
-            groupBy("output_rejects_packing.updated_at", "so_det.size")->
-            orderBy("output_rejects_packing.updated_at", "desc")->
-            orderBy("output_rejects_packing.created_at", "desc")->
+            groupBy("output_check_finishing.updated_at", "so_det.size")->
+            orderBy("output_check_finishing.updated_at", "desc")->
+            orderBy("output_check_finishing.created_at", "desc")->
             limit("5")->get();
 
-        $latestOutputReworks = Rework::selectRaw('
-                output_reworks_packing.updated_at,
+        $latestOutputReworks = OutputFinishing::selectRaw('
+                output_check_finishing.updated_at,
                 output_defect_types.defect_type,
                 output_defect_areas.defect_area,
                 master_plan.gambar,
-                output_defects.defect_area_x,
-                output_defects.defect_area_y,
+                output_check_finishing.defect_area_x,
+                output_check_finishing.defect_area_y,
                 so_det.size as size,
                 count(*) as total
             ')->
-            leftJoin('output_defects', 'output_defects.id', '=', 'output_reworks_packing.defect_id')->
-            leftJoin('output_product_types', 'output_product_types.id', '=', 'output_defects.product_type_id')->
-            leftJoin('output_defect_types', 'output_defect_types.id', '=', 'output_defects.defect_type_id')->
-            leftJoin('output_defect_areas', 'output_defect_areas.id', '=', 'output_defects.defect_area_id')->
-            leftJoin('master_plan', 'master_plan.id', '=', 'output_defects.master_plan_id')->
-            leftJoin('so_det', 'so_det.id', '=', 'output_defects.so_det_id')->
-            where('master_plan.sewing_line', Auth::user()->username);
+            leftJoin('output_defect_types', 'output_defect_types.id', '=', 'output_check_finishing.defect_type_id')->
+            leftJoin('output_defect_areas', 'output_defect_areas.id', '=', 'output_check_finishing.defect_area_id')->
+            leftJoin('master_plan', 'master_plan.id', '=', 'output_check_finishing.master_plan_id')->
+            leftJoin('so_det', 'so_det.id', '=', 'output_check_finishing.so_det_id')->
+            where('master_plan.sewing_line', Auth::user()->username)->
+            where('output_check_finishing.status', 'reworked');
             if (Auth::user()->Groupp != 'ALLSEWING') {
                 $latestOutputReworks->where('master_plan.sewing_line', Auth::user()->username);
             }
             if ($this->masterPlan) {
                 $latestOutputReworks->where('master_plan.id', $this->masterPlan);
             }
-        $latestReworks = $latestOutputReworks->whereRaw("DATE(output_reworks_packing.created_at) BETWEEN '".$this->dateFrom."' AND '".$this->dateTo."'")->
-        whereRaw("master_plan.tgl_plan BETWEEN '".$this->dateFrom."' AND '".$this->dateTo."'")->
+        $latestReworks = $latestOutputReworks->whereRaw("DATE(output_check_finishing.created_at) BETWEEN '".$this->dateFrom."' AND '".$this->dateTo."'")->
+            whereRaw("master_plan.tgl_plan BETWEEN '".$this->dateFrom."' AND '".$this->dateTo."'")->
             groupBy(
-                "output_reworks_packing.updated_at",
+                "output_check_finishing.updated_at",
                 "output_defect_types.defect_type",
                 "output_defect_areas.defect_area",
                 "master_plan.gambar",
-                "output_defects.defect_area_x",
-                "output_defects.defect_area_y",
+                "output_check_finishing.defect_area_x",
+                "output_check_finishing.defect_area_y",
                 "so_det.size"
             )->
-            orderBy("output_reworks_packing.updated_at", "desc")->
-            orderBy("output_reworks_packing.created_at", "desc")->
+            orderBy("output_check_finishing.updated_at", "desc")->
+            orderBy("output_check_finishing.created_at", "desc")->
             limit("5")->get();
 
         return view('livewire.history-content', [
             // 'latestOutput' => $latestOutput,
-            'latestRfts' => $latestRfts,
+            // 'latestRfts' => $latestRfts,
             'latestDefects' => $latestDefects,
             'latestRejects' => $latestRejects,
             'latestReworks' => $latestReworks
