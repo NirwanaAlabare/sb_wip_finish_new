@@ -15,6 +15,7 @@ use App\Models\SignalBit\Rft;
 use App\Models\SignalBit\Reject;
 use App\Models\SignalBit\Rework;
 use App\Models\SignalBit\Defect as DefectModel;
+use App\Models\SignalBit\OutputFinishing;
 use Carbon\Carbon;
 use DB;
 
@@ -24,6 +25,7 @@ class Defect extends Component
 
     public $orderInfo;
     public $orderWsDetailSizes;
+    public $outputFinishing;
     public $output;
     public $outputInput;
     public $sizeInput;
@@ -102,9 +104,9 @@ class Defect extends Component
 
     public function updateOutput()
     {
-        $this->output = DefectModel::
+        $this->output = OutputFinishing::
             where('master_plan_id', $this->orderInfo->id)->
-            where('defect_status', 'defect')->
+            where('status', 'defect')->
             count();
     }
 
@@ -236,10 +238,7 @@ class Defect extends Component
         $this->validateOnly('sizeInput');
 
         $endlineOutputData = EndlineOutput::selectRaw("output_rfts.*")->leftJoin("master_plan", "master_plan.id", "=", "output_rfts.master_plan_id")->where("id_ws", $this->orderInfo->id_ws)->where("color", $this->orderInfo->color)->where("so_det_id", $this->sizeInput)->count();
-        $currentRftData = Rft::selectRaw("output_rfts_packing.*")->leftJoin("master_plan", "master_plan.id", "=", "output_rfts_packing.master_plan_id")->where('id_ws', $this->orderInfo->id_ws)->where("color", $this->orderInfo->color)->where("so_det_id", $this->sizeInput)->count();
-        $currentDefectData = DefectModel::selectRaw("output_defects_packing.*")->leftJoin("master_plan", "master_plan.id", "=", "output_defects_packing.master_plan_id")->where('id_ws', $this->orderInfo->id_ws)->where("color", $this->orderInfo->color)->where("so_det_id", $this->sizeInput)->where("defect_status", "defect")->count();
-        $currentRejectData = Reject::selectRaw("output_rejects_packing.*")->leftJoin("master_plan", "master_plan.id", "=", "output_rejects_packing.master_plan_id")->where('id_ws', $this->orderInfo->id_ws)->where("color", $this->orderInfo->color)->where("so_det_id", $this->sizeInput)->count();
-        $currentOutputData = $currentRftData+$currentDefectData+$currentRejectData;
+        $currentOutputData = OutputFinishing::selectRaw("output_check_finishing.*")->leftJoin("master_plan", "master_plan.id", "=", "output_check_finishing.master_plan_id")->where('id_ws', $this->orderInfo->id_ws)->where("color", $this->orderInfo->color)->where("so_det_id", $this->sizeInput)->count();
         $balanceOutputData = $endlineOutputData-$currentOutputData;
 
         $additionalMessage = $balanceOutputData < $this->outputInput && $balanceOutputData > 0 ? "<b>".($this->outputInput - $balanceOutputData)."</b> output melebihi batas input." : null;
@@ -266,21 +265,20 @@ class Defect extends Component
         for ($i = 0; $i < $this->outputInput; $i++)
         {
             array_push($insertData, [
-                'master_plan_id' => $this->orderInfo->id,
                 'so_det_id' => $this->sizeInput,
-                // 'product_type_id' => $this->productType,
+                'master_plan_id' => $this->orderInfo->id,
+                'status' => "defect",
                 'defect_type_id' => $this->defectType,
                 'defect_area_id' => $this->defectArea,
                 'defect_area_x' => $this->defectAreaPositionX,
                 'defect_area_y' => $this->defectAreaPositionY,
-                'status' => 'NORMAL',
                 'created_by' => Auth::user()->username,
                 'created_at' => Carbon::now(),
                 'updated_at' => Carbon::now()
             ]);
         }
 
-        $insertDefect = DefectModel::insert($insertData);
+        $insertDefect = OutputFinishing::insert($insertData);
 
         if ($insertDefect) {
             $type = DefectType::select('defect_type')->find($this->defectType);
@@ -306,9 +304,9 @@ class Defect extends Component
         $this->orderWsDetailSizes = $session->get('orderWsDetailSizes', $this->orderWsDetailSizes);
 
         // Get total output
-        $this->output = DefectModel::
+        $this->output = OutputFinishing::
             where('master_plan_id', $this->orderInfo->id)->
-            where('defect_status', 'defect')->
+            where('status', 'defect')->
             count();
 
         // Defect types

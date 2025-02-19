@@ -38,33 +38,6 @@
                 </table>
             </div> --}}
             <div class="col-md-6 table-responsive">
-                <p class="text-rft fw-bold mb-1"> RFT </p>
-                <table class="table table-bordered w-100 mx-auto">
-                    <thead>
-                        <tr>
-                            <th>Tanggal & Waktu</th>
-                            <th>Ukuran</th>
-                            <th>Qty</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @if (count($latestRfts) < 1)
-                            <tr>
-                                <td colspan="3" class="text-center">Data tidak ditemukan</td>
-                            </tr>
-                        @else
-                            @foreach ($latestRfts as $latestRft)
-                                <tr>
-                                    <td>{{ $latestRft->updated_at }}</td>
-                                    <td>{{ $latestRft->size }}</td>
-                                    <td>{{ $latestRft->total }}</td>
-                                </tr>
-                            @endforeach
-                        @endif
-                    </tbody>
-                </table>
-            </div>
-            <div class="col-md-6 table-responsive">
                 <p class="text-reject fw-bold mb-1"> REJECT </p>
                 <table class="table table-bordered w-100 mx-auto">
                     <thead>

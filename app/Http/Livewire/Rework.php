@@ -11,6 +11,7 @@ use App\Models\SignalBit\MasterPlan;
 use App\Models\SignalBit\Rft;
 use App\Models\SignalBit\Defect;
 use App\Models\SignalBit\Rework as ReworkModel;
+use App\Models\SignalBit\OutputFinishing;
 use App\Models\Nds\OutputPacking;
 use DB;
 
@@ -144,62 +145,18 @@ class Rework extends Component
     }
 
     public function submitAllRework() {
-        $allDefect = Defect::selectRaw('output_defects_packing.id id, output_defects_packing.master_plan_id master_plan_id, output_defects_packing.so_det_id so_det_id')->
-            leftJoin('so_det', 'so_det.id', '=', 'output_defects_packing.so_det_id')->
-            where('output_defects_packing.defect_status', 'defect')->
-            where('output_defects_packing.master_plan_id', $this->orderInfo->id)->get();
-
-        if ($allDefect->count() > 0) {
-            $rftArray = [];
-            $rftNdsArray = [];
-            foreach ($allDefect as $defect) {
-                // create rework
-                $createRework = ReworkModel::create([
-                    "defect_id" => $defect->id,
-                    "status" => "NORMAL",
-                    "created_by" => Auth::user()->username
-                ]);
-
-                // add rft array
-                array_push($rftArray, [
-                    'master_plan_id' => $defect->master_plan_id,
-                    'so_det_id' => $defect->so_det_id,
-                    "status" => "REWORK",
-                    "rework_id" => $createRework->id,
-                    "created_by" => Auth::user()->username,
-                    "created_at" => Carbon::now(),
-                    "updated_at" => Carbon::now()
-                ]);
-
-                // add rft nds array
-                array_push($rftNdsArray, [
-                    'sewing_line' => $this->orderInfo->sewing_line,
-                    'master_plan_id' => $defect->master_plan_id,
-                    'so_det_id' => $defect->so_det_id,
-                    "status" => "REWORK",
-                    "rework_id" => $createRework->id,
-                    "created_by" => Auth::user()->username,
-                    "created_at" => Carbon::now(),
-                    "updated_at" => Carbon::now()
-                ]);
-            }
-
-            // update defect
-            $defectSql = Defect::where('master_plan_id', $this->orderInfo->id)->update([
-                "defect_status" => "reworked"
+        // update defect
+        $updateDefect = OutputFinishing::where('master_plan_id', $this->orderInfo->id)->
+            where('status', 'defect')->
+            update([
+                "status" => "reworked",
+                "out_at" => Carbon::now()
             ]);
 
-            // create rft
-            $createRft = Rft::insert($rftArray);
-            $createRftNds = OutputPacking::insert($rftNdsArray);
-
-            if ($allDefect->count() > 0) {
-                $this->emit('alert', 'success', "Semua DEFECT berhasil di REWORK");
-            } else {
-                $this->emit('alert', 'error', "Terjadi kesalahan. DEFECT tidak berhasil di REWORK.");
-            }
+        if ($updateDefect) {
+            $this->emit('alert', 'success', "Semua DEFECT berhasil di REWORK");
         } else {
-            $this->emit('alert', 'warning', "Data tidak ditemukan.");
+            $this->emit('alert', 'error', "Terjadi kesalahan. DEFECT tidak berhasil di REWORK.");
         }
     }
 
@@ -215,62 +172,22 @@ class Rework extends Component
     }
 
     public function submitMassRework() {
-        $selectedDefect = Defect::selectRaw('output_defects_packing.*, so_det.size as size')->
-            leftJoin('so_det', 'so_det.id', '=', 'output_defects_packing.so_det_id')->
-            where('output_defects_packing.defect_status', 'defect')->
-            where('output_defects_packing.master_plan_id', $this->orderInfo->id)->
-            where('output_defects_packing.defect_type_id', $this->massDefectType)->
-            where('output_defects_packing.defect_area_id', $this->massDefectArea)->
-            where('output_defects_packing.so_det_id', $this->massSize)->
+        $selectedDefect = OutputFinishing::selectRaw('output_check_finishing.*, so_det.size as size')->
+            leftJoin('so_det', 'so_det.id', '=', 'output_check_finishing.so_det_id')->
+            whereNull('output_check_finishing.kode_numbering')->
+            where('output_check_finishing.status', 'defect')->
+            where('output_check_finishing.master_plan_id', $this->orderInfo->id)->
+            where('output_check_finishing.defect_type_id', $this->massDefectType)->
+            where('output_check_finishing.defect_area_id', $this->massDefectArea)->
+            where('output_check_finishing.so_det_id', $this->massSize)->
             take($this->massQty)->get();
 
         if ($selectedDefect->count() > 0) {
-            $rftArray = [];
-            $rftNdsArray = [];
-            $defectIds = [];
-            foreach ($selectedDefect as $defect) {
-                // create rework
-                $createRework = ReworkModel::create([
-                    "defect_id" => $defect->id,
-                    "status" => "NORMAL",
-                    "created_by" => Auth::user()->username
-                ]);
-
-                // add defect id array
-                array_push($defectIds, $defect->id);
-
-                // add rft array
-                array_push($rftArray, [
-                    'master_plan_id' => $defect->master_plan_id,
-                    'so_det_id' => $defect->so_det_id,
-                    "status" => "REWORK",
-                    "rework_id" => $createRework->id,
-                    "created_by" => Auth::user()->username,
-                    "created_at" => Carbon::now(),
-                    "updated_at" => Carbon::now()
-                ]);
-
-                // add rft nds array
-                array_push($rftNdsArray, [
-                    'sewing_line' => $this->orderInfo->sewing_line,
-                    'master_plan_id' => $defect->master_plan_id,
-                    'so_det_id' => $defect->so_det_id,
-                    "status" => "REWORK",
-                    "rework_id" => $createRework->id,
-                    "created_by" => Auth::user()->username,
-                    "created_at" => Carbon::now(),
-                    "updated_at" => Carbon::now()
-                ]);
-            }
             // update defect
-            $defectSql = Defect::whereIn('id', $defectIds)->update([
-                "defect_status" => "reworked"
+            $defectSql = OutputFinishing::whereIn('id', $selectedDefect->pluck("id"))->update([
+                "status" => "reworked",
+                "out_at" => Carbon::now(),
             ]);
-
-            // create rft
-            $createRft = Rft::insert($rftArray);
-            // create rft nds
-            $createRftNds = OutputPacking::insert($rftNdsArray);
 
             if ($selectedDefect->count() > 0) {
                 $this->emit('alert', 'success', "DEFECT dengan Ukuran : ".$selectedDefect[0]->size.", Tipe : ".$this->massDefectTypeName." dan Area : ".$this->massDefectAreaName." berhasil di REWORK sebanyak ".$selectedDefect->count()." kali.");
@@ -285,73 +202,31 @@ class Rework extends Component
     }
 
     public function submitRework($defectId) {
-        $thisDefectRework = ReworkModel::where('defect_id', $defectId)->count();
-
-        if ($thisDefectRework < 1) {
-            // add to rework
-            $createRework = ReworkModel::create([
-                "defect_id" => $defectId,
-                "status" => "NORMAL",
-                "created_by" => Auth::user()->username
+        // remove from defect
+        $defect = OutputFinishing::where('id', $defectId)->
+            update([
+                "status" => "reworked",
+                "out_at" => Carbon::now(),
             ]);
 
-            // remove from defect
-            $defect = Defect::where('id', $defectId);
-            $getDefect = $defect->first();
-            $updateDefect = $defect->update([
-                "defect_status" => "reworked"
-            ]);
-
-            // add to rft
-            $createRft = Rft::create([
-                'master_plan_id' => $getDefect->master_plan_id,
-                'so_det_id' => $getDefect->so_det_id,
-                "status" => "REWORK",
-                "rework_id" => $createRework->id,
-                "created_by" => Auth::user()->username
-            ]);
-
-            // add to rft
-            $createRftNds = OutputPacking::create([
-                'sewing_line' => $this->orderInfo->sewing_line,
-                'master_plan_id' => $getDefect->master_plan_id,
-                'so_det_id' => $getDefect->so_det_id,
-                "status" => "REWORK",
-                "rework_id" => $createRework->id,
-                "created_by" => Auth::user()->username
-            ]);
-
-            if ($createRework && $updateDefect && $createRft) {
-                $this->emit('alert', 'success', "DEFECT dengan ID : ".$defectId." berhasil di REWORK.");
-            } else {
-                $this->emit('alert', 'error', "Terjadi kesalahan. DEFECT dengan ID : ".$defectId." tidak berhasil di REWORK.");
-            }
+        if ($defect) {
+            $this->emit('alert', 'success', "DEFECT dengan ID : ".$defectId." berhasil di REWORK.");
         } else {
-            $this->emit('alert', 'warning', "Pencegahan data redundant. DEFECT dengan ID : ".$defectId." sudah ada di REWORK.");
+            $this->emit('alert', 'error', "Terjadi kesalahan. DEFECT dengan ID : ".$defectId." tidak berhasil di REWORK.");
         }
     }
 
-    public function cancelRework($reworkId, $defectId) {
-        // delete from rework
-        $deleteRework = ReworkModel::where('id', $reworkId)->delete();
-
+    public function cancelRework($defectId) {
         // add to defect
-        $defect = Defect::where('id', $defectId);
-        $getDefect = $defect->first();
-        $updateDefect = $defect->update([
-            "defect_status" => "defect"
+        $updateDefect = OutputFinishing::where('id', $defectId)->update([
+            "status" => "defect",
+            "out_at" => null,
         ]);
 
-        // delete from rft
-        $deleteRft = Rft::where('rework_id', $reworkId)->delete();
-
-        // delete from rft nds
-        $deleteRftNds = OutputPacking::where('rework_id', $reworkId)->delete();
-
-        if ($deleteRework && $updateDefect && $deleteRft) {
-            $this->emit('alert', 'success', "REWORK dengan REWORK ID : ".$reworkId." dan DEFECT ID : ".$defectId." berhasil di kembalikan ke DEFECT.");
+        if ($updateDefect) {
+            $this->emit('alert', 'success', "REWORK dengan ID : ".$defectId." berhasil di kembalikan ke DEFECT.");
         } else {
-            $this->emit('alert', 'error', "Terjadi kesalahan. REWORK dengan REWORK ID : ".$reworkId." dan DEFECT ID : ".$defectId." tidak berhasil dikembalikan ke DEFECT.");
+            $this->emit('alert', 'error', "Terjadi kesalahan. REWORK ID : ".$defectId." tidak berhasil dikembalikan ke DEFECT.");
         }
     }
 
@@ -364,64 +239,64 @@ class Rework extends Component
 
         $this->allDefectImage = MasterPlan::select('gambar')->find($this->orderInfo->id);
 
-        $this->allDefectPosition = Defect::where('output_defects_packing.defect_status', 'defect')->
-            where('output_defects_packing.master_plan_id', $this->orderInfo->id)->
+        $this->allDefectPosition = OutputFinishing::where('output_check_finishing.status', 'defect')->
+            where('output_check_finishing.master_plan_id', $this->orderInfo->id)->
             get();
 
-        $allDefectList = Defect::selectRaw('output_defects_packing.defect_type_id, output_defects_packing.defect_area_id, output_defect_types.defect_type, output_defect_areas.defect_area, count(*) as total')->
-            leftJoin('output_defect_areas', 'output_defect_areas.id', '=', 'output_defects_packing.defect_area_id')->
-            leftJoin('output_defect_types', 'output_defect_types.id', '=', 'output_defects_packing.defect_type_id')->
-            where('output_defects_packing.defect_status', 'defect')->
-            where('output_defects_packing.master_plan_id', $this->orderInfo->id)->
+        $allDefectList = OutputFinishing::selectRaw('output_check_finishing.defect_type_id, output_check_finishing.defect_area_id, output_defect_types.defect_type, output_defect_areas.defect_area, count(*) as total')->
+            leftJoin('output_defect_areas', 'output_defect_areas.id', '=', 'output_check_finishing.defect_area_id')->
+            leftJoin('output_defect_types', 'output_defect_types.id', '=', 'output_check_finishing.defect_type_id')->
+            where('output_check_finishing.status', 'defect')->
+            where('output_check_finishing.master_plan_id', $this->orderInfo->id)->
             whereRaw("
                 (
                     output_defect_types.defect_type LIKE '%".$this->allDefectListFilter."%' OR
                     output_defect_areas.defect_area LIKE '%".$this->allDefectListFilter."%'
                 )
             ")->
-            groupBy('output_defects_packing.defect_type_id', 'output_defects_packing.defect_area_id', 'output_defect_types.defect_type', 'output_defect_areas.defect_area')->
-            orderBy('output_defects_packing.updated_at', 'desc')->
+            groupBy('output_check_finishing.defect_type_id', 'output_check_finishing.defect_area_id', 'output_defect_types.defect_type', 'output_defect_areas.defect_area')->
+            orderBy('output_check_finishing.updated_at', 'desc')->
             paginate(5, ['*'], 'allDefectListPage');
 
-        $defects = Defect::selectRaw('output_defects_packing.*, so_det.size as so_det_size')->
-            leftJoin('so_det', 'so_det.id', '=', 'output_defects_packing.so_det_id')->
-            leftJoin('output_defect_areas', 'output_defect_areas.id', '=', 'output_defects_packing.defect_area_id')->
-            leftJoin('output_defect_types', 'output_defect_types.id', '=', 'output_defects_packing.defect_type_id')->
-            where('output_defects_packing.defect_status', 'defect')->
-            where('output_defects_packing.master_plan_id', $this->orderInfo->id)->
+        $defects = OutputFinishing::selectRaw('output_check_finishing.*, output_defect_types.defect_type, output_defect_areas.defect_area, master_plan.gambar, so_det.size as so_det_size')->
+            leftJoin('master_plan', 'master_plan.id', '=', 'output_check_finishing.master_plan_id')->
+            leftJoin('so_det', 'so_det.id', '=', 'output_check_finishing.so_det_id')->
+            leftJoin('output_defect_areas', 'output_defect_areas.id', '=', 'output_check_finishing.defect_area_id')->
+            leftJoin('output_defect_types', 'output_defect_types.id', '=', 'output_check_finishing.defect_type_id')->
+            where('output_check_finishing.status', 'defect')->
+            where('output_check_finishing.master_plan_id', $this->orderInfo->id)->
             whereRaw("(
-                output_defects_packing.id LIKE '%".$this->searchDefect."%' OR
+                output_check_finishing.id LIKE '%".$this->searchDefect."%' OR
                 so_det.size LIKE '%".$this->searchDefect."%' OR
                 output_defect_areas.defect_area LIKE '%".$this->searchDefect."%' OR
                 output_defect_types.defect_type LIKE '%".$this->searchDefect."%' OR
-                output_defects_packing.defect_status LIKE '%".$this->searchDefect."%'
+                output_check_finishing.status LIKE '%".$this->searchDefect."%'
             )")->
-            orderBy('output_defects_packing.updated_at', 'desc')->paginate(10, ['*'], 'defectsPage');
+            orderBy('output_check_finishing.updated_at', 'desc')->paginate(10, ['*'], 'defectsPage');
 
-        $reworks = ReworkModel::selectRaw('output_reworks_packing.*, so_det.size as so_det_size')->
-            leftJoin('output_defects_packing', 'output_defects_packing.id', '=', 'output_reworks_packing.defect_id')->
-            leftJoin('output_defect_areas', 'output_defect_areas.id', '=', 'output_defects_packing.defect_area_id')->
-            leftJoin('output_defect_types', 'output_defect_types.id', '=', 'output_defects_packing.defect_type_id')->
-            leftJoin('so_det', 'so_det.id', '=', 'output_defects_packing.so_det_id')->
-            where('output_defects_packing.defect_status', 'reworked')->
-            where('output_defects_packing.master_plan_id', $this->orderInfo->id)->
+        $reworks = OutputFinishing::selectRaw('output_check_finishing.*, output_defect_types.defect_type, output_defect_areas.defect_area, master_plan.gambar, so_det.size as so_det_size')->
+            leftJoin('master_plan', 'master_plan.id', '=', 'output_check_finishing.master_plan_id')->
+            leftJoin('so_det', 'so_det.id', '=', 'output_check_finishing.so_det_id')->
+            leftJoin('output_defect_areas', 'output_defect_areas.id', '=', 'output_check_finishing.defect_area_id')->
+            leftJoin('output_defect_types', 'output_defect_types.id', '=', 'output_check_finishing.defect_type_id')->
+            where('output_check_finishing.status', 'reworked')->
+            where('output_check_finishing.master_plan_id', $this->orderInfo->id)->
             whereRaw("(
-                output_reworks_packing.id LIKE '%".$this->searchRework."%' OR
-                output_defects_packing.id LIKE '%".$this->searchRework."%' OR
+                output_check_finishing.id LIKE '%".$this->searchRework."%' OR
                 so_det.size LIKE '%".$this->searchRework."%' OR
                 output_defect_areas.defect_area LIKE '%".$this->searchRework."%' OR
                 output_defect_types.defect_type LIKE '%".$this->searchRework."%' OR
-                output_defects_packing.defect_status LIKE '%".$this->searchRework."%'
+                output_check_finishing.status LIKE '%".$this->searchRework."%'
             )")->
-            orderBy('output_reworks_packing.updated_at', 'desc')->paginate(10, ['*'], 'reworksPage');
+            orderBy('output_check_finishing.updated_at', 'desc')->paginate(10, ['*'], 'reworksPage');
 
-        $this->massSelectedDefect = Defect::selectRaw('output_defects_packing.so_det_id, so_det.size as size, count(*) as total')->
-            leftJoin('so_det', 'so_det.id', '=', 'output_defects_packing.so_det_id')->
-            where('output_defects_packing.defect_status', 'defect')->
-            where('output_defects_packing.master_plan_id', $this->orderInfo->id)->
-            where('output_defects_packing.defect_type_id', $this->massDefectType)->
-            where('output_defects_packing.defect_area_id', $this->massDefectArea)->
-            groupBy('output_defects_packing.so_det_id', 'so_det.size')->get();
+        $this->massSelectedDefect = OutputFinishing::selectRaw('output_check_finishing.so_det_id, so_det.size as size, count(*) as total')->
+            leftJoin('so_det', 'so_det.id', '=', 'output_check_finishing.so_det_id')->
+            where('output_check_finishing.status', 'defect')->
+            where('output_check_finishing.master_plan_id', $this->orderInfo->id)->
+            where('output_check_finishing.defect_type_id', $this->massDefectType)->
+            where('output_check_finishing.defect_area_id', $this->massDefectArea)->
+            groupBy('output_check_finishing.so_det_id', 'so_det.size')->get();
 
         return view('livewire.rework' , ['defects' => $defects, 'reworks' => $reworks, 'allDefectList' => $allDefectList]);
     }

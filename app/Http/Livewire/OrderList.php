@@ -135,14 +135,14 @@ class OrderList extends Component
                             master_plan.tgl_plan,
                             master_plan.id_ws,
                             master_plan.sewing_line,
-                            count(output_rfts_packing.id) as progress
+                            count(output_check_finishing.id) as progress
                         from
                             master_plan
                         left join
-                            output_rfts_packing on output_rfts_packing.master_plan_id = master_plan.id
+                            output_check_finishing on output_check_finishing.master_plan_id = master_plan.id
                         where
                             (master_plan.sewing_line = '".strtoupper(Auth::user()->username)."' OR master_plan.sewing_line = '".str_replace(" ", "_", strtoupper($this->filterLine))."') AND
-                            DATE(output_rfts_packing.updated_at) = '".$this->date."' AND
+                            output_check_finishing.updated_at BETWEEN '".$this->date." 00:00:00' AND '".$this->date." 23:59:59' AND
                             (master_plan.tgl_plan = '".$this->date."' $additionalQuery) AND
                             master_plan.cancel = 'N'
                         group by

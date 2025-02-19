@@ -39,7 +39,7 @@
                             @else
                                 @foreach ($defects as $defect)
                                     @php
-                                        $defectStatusColor = ($defect->defect_status == 'defect' ? 'text-defect' : ($defect->defect_status == 'reworked' ? 'text-rework' : 'text-danger'))
+                                        $defectStatusColor = ($defect->status == 'defect' ? 'text-defect' : ($defect->status == 'reworked' ? 'text-rework' : 'text-danger'))
                                     @endphp
                                     <tr>
                                         <td>{{ $defects->firstItem() + $loop->index }}</td>
@@ -52,7 +52,7 @@
                                                 <i class="fa-regular fa-image"></i>
                                             </button>
                                         </td>
-                                        <td class="{{ $defectStatusColor }} fw-bold">{{ strtoupper($defect->defect_status) }}</td>
+                                        <td class="{{ $defectStatusColor }} fw-bold">{{ strtoupper($defect->status) }}</td>
                                         <td>{{ $defect->total }}</td>
                                     </tr>
                                 @endforeach
