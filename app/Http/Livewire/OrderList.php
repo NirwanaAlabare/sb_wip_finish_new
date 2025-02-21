@@ -24,6 +24,8 @@ class OrderList extends Component
     public $filterStyle = '';
     public $filterDate = '';
 
+    public $method = "manual";
+
     public $listeners = ['setDate' => 'setDate'];
 
     public function mount(SessionManager $session)
@@ -68,6 +70,14 @@ class OrderList extends Component
         $this->orders = $this->orders->filter(function ($item) {
             return $item['plan_date'] == $this->date;
         })->values();
+    }
+
+    public function toggleMethod() {
+        if ($this->method == "manual") {
+            $this->method = "qr";
+        } else {
+            $this->method = "manual";
+        }
     }
 
     public function render()

@@ -32,7 +32,7 @@ Route::middleware('auth')->group(function () {
     });
 
     Route::controller(ProductionController::class)->prefix('production-panel')->group(function () {
-        Route::get('/{id}', 'index');
+        Route::get('/{id}/{method?}', 'index');
         Route::post('/unauthenticate', 'unauthenticate')->middleware('auth');
     });
 

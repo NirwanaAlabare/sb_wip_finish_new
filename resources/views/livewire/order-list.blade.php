@@ -6,6 +6,7 @@
             <button class="btn btn-danger" type="button" id="button-search-order"><i class="fa-regular fa-magnifying-glass"></i></button>
         </div>
         <button class="btn btn-outline-danger mb-3" type="button" wire:click="preSubmitFilter" id="filter-button"><i class="fa-regular fa-filter"></i></button>
+        <button class="btn btn-danger mb-3" type="button" wire:click="toggleMethod">{{ strtoUpper($method) }}</button>
     </div>
 
     <div class="loading-container-fullscreen hidden" id="loading-order-list">
@@ -28,7 +29,7 @@
             <h5 class="text-center text-muted mt-3"><i class="fa-solid fa-circle-exclamation"></i> Order tidak ditemukan</h5>
         @else
             @foreach ($orders as $order)
-                <a href="{{ $this->baseUrl."/production-panel/".$order->id }}" class="order col-md-6 h-100">
+                <a href="{{ $this->baseUrl."/production-panel/".$order->id."/".$method }}" class="order col-md-6 h-100">
                     <div class="card overflow-hidden h-100">
                         @if ($order->plan_date != date('Y-m-d'))
                             <span class="{{ $this->date < date('Y-m-d') && $order->plan_date < $this->date ? 'bg-defect' : 'bg-danger' }} text-light text-center fw-bold p-1 rounded-1" style="position: absolute; width:35%; top:10%; right: -10%; transform:rotate(45deg);">BERLALU</span>

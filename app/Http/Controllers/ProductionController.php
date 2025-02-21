@@ -14,7 +14,7 @@ class ProductionController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index($id)
+    public function index($id, $method)
     {
         $orderInfo = MasterPlan::selectRaw("
                 master_plan.id as id,
@@ -68,7 +68,7 @@ class ProductionController extends Controller
                 'mastersupplier.supplier'
             )->get();
 
-        return view('production-panel', ['orderInfo' => $orderInfo, 'orderWsDetails' => $orderWsDetails]);
+        return view('production-panel', ['orderInfo' => $orderInfo, 'orderWsDetails' => $orderWsDetails, 'method' => $method]);
     }
 
     /**
