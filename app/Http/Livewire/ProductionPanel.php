@@ -11,7 +11,7 @@ use App\Models\SignalBit\DefectType;
 use App\Models\SignalBit\DefectArea;
 use App\Models\SignalBit\Reject;
 use App\Models\SignalBit\Rework;
-use App\Models\SignalBit\Undo;
+use App\Models\SignalBit\UndoFinishing;
 use App\Models\Nds\OutputPacking;
 use Illuminate\Session\SessionManager;
 use Illuminate\Support\Facades\Auth;

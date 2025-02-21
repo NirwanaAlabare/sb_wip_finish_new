@@ -5,7 +5,7 @@ namespace App\Models\SignalBit;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Undo extends Model
+class UndoFinishing extends Model
 {
     use HasFactory;
 
