@@ -6,7 +6,7 @@
             <button class="btn btn-danger" type="button" id="button-search-order"><i class="fa-regular fa-magnifying-glass"></i></button>
         </div>
         <button class="btn btn-outline-danger mb-3" type="button" wire:click="preSubmitFilter" id="filter-button"><i class="fa-regular fa-filter"></i></button>
-        <button class="btn btn-danger mb-3" type="button" wire:click="toggleMethod">{{ strtoUpper($method) }}</button>
+        <button class="btn btn-danger fw-bold mb-3" type="button" wire:click="toggleMethod"><i class="fa-solid fa-rotate"></i> {{ strtoUpper($method) }}</button>
     </div>
 
     <div class="loading-container-fullscreen hidden" id="loading-order-list">
