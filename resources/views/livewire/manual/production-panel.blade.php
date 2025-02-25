@@ -12,7 +12,7 @@
     </div>
 
     {{-- Production Info --}}
-    <div class="production-info row row-gap-1 align-items-center mb-3">
+    <div class="production-info row row-gap-1 justify-content-center align-items-end mb-3">
         <div class="col-md">
             <div class="mb-1">
                 <label class="form-label mb-0">Buyer</label>
@@ -45,6 +45,11 @@
                         <option value="{{ $order->id }}" data-color-name="{{ $order->color }}">{{ $order->color }}</option>
                     @endforeach
                 </select>
+            </div>
+        </div>
+        <div class="col-md-auto">
+            <div class="mb-1" wire:ignore>
+                <a href="{{ $this->baseUrl."/production-panel/".$order->id."/qr" }}" class="btn btn-danger btn-sm w-auto fw-bold"><i class="fa-solid fa-rotate"></i> MANUAL</a>
             </div>
         </div>
     </div>
@@ -147,7 +152,7 @@
         {{-- Rft --}}
         {{-- @if ($rft) --}}
         <div class="{{ $rft ? '' : 'd-none' }}">
-            @livewire('rft', ["orderWsDetailSizes" => $orderWsDetailSizes])
+            @livewire('manual.rft', ["orderWsDetailSizes" => $orderWsDetailSizes])
         </div>
         {{-- @endif --}}
 
@@ -155,25 +160,25 @@
         {{-- Defect --}}
         {{-- @if ($defect) --}}
         <div class="{{ $defect ? '' : 'd-none' }}">
-            @livewire('defect', ["orderWsDetailSizes" => $orderWsDetailSizes])
+            @livewire('manual.defect', ["orderWsDetailSizes" => $orderWsDetailSizes])
         </div>
         {{-- @endif --}}
 
         {{-- Defect History --}}
         @if ($defectHistory)
-            @livewire('defect-history', ["orderWsDetailSizes" => $orderWsDetailSizes])
+            @livewire('manual.defect-history', ["orderWsDetailSizes" => $orderWsDetailSizes])
         @endif
 
         {{-- Reject --}}
         @if ($reject)
         <div class="{{ $reject ? '' : 'd-none' }}">
-            @livewire('reject', ["orderWsDetailSizes" => $orderWsDetailSizes])
+            @livewire('manual.reject', ["orderWsDetailSizes" => $orderWsDetailSizes])
         </div>
         @endif
 
         {{-- Rework --}}
         @if ($rework)
-            @livewire('rework', ["orderWsDetailSizes" => $orderWsDetailSizes])
+            @livewire('manual.rework', ["orderWsDetailSizes" => $orderWsDetailSizes])
         @endif
 
         {{-- Undo --}}

@@ -202,7 +202,7 @@
                                             <i class="fa-regular fa-image"></i>
                                         </button>
                                     </td>
-                                    <td class="text-defect fw-bold">{{ strtoupper($defect->defect_status) }}</td>
+                                    <td class="text-defect fw-bold">{{ strtoupper($defect->status) }}</td>
                                     <td>
                                         <div wire:loading>
                                             <div class="loading-small"></div>

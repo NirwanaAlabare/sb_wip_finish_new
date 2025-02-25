@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Livewire;
+namespace App\Http\Livewire\Manual;
 
 use Livewire\Component;
 use App\Models\SignalBit\OutputFinishing;
@@ -51,6 +51,8 @@ class ProductionPanel extends Component
     public $undoSize;
     public $undoDefectType;
     public $undoDefectArea;
+
+    public $baseUrl;
 
     // Rules
     protected $rules = [
@@ -112,6 +114,8 @@ class ProductionPanel extends Component
         $this->undoSize = "";
         $this->undoDefectType = "";
         $this->undoDefectArea = "";
+
+        $this->baseUrl = url('/');
 
         $this->orderWsDetailSizes = MasterPlan::selectRaw("
                 MIN(so_det.id) as so_det_id,
@@ -479,7 +483,7 @@ class ProductionPanel extends Component
         $undoDefectTypes = DefectType::all();
         $undoDefectAreas = DefectArea::all();
 
-        return view('livewire.production-panel', ['undoDefectTypes' => $undoDefectTypes, 'undoDefectAreas' => $undoDefectAreas]);
+        return view('livewire.manual.production-panel', ['undoDefectTypes' => $undoDefectTypes, 'undoDefectAreas' => $undoDefectAreas]);
     }
 
     public function dehydrate()

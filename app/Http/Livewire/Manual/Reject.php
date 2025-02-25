@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Livewire;
+namespace App\Http\Livewire\Manual;
 
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
@@ -197,7 +197,8 @@ class Reject extends Component
                 'defect_area_y' => $this->rejectAreaPositionY,
                 'created_by' => Auth::user()->id,
                 'created_at' => Carbon::now(),
-                'updated_at' => Carbon::now()
+                'updated_at' => Carbon::now(),
+                'out_at' => Carbon::now()
             ]);
         }
 
@@ -280,7 +281,8 @@ class Reject extends Component
             }
             // update defect
             $defectSql = OutputFinishing::whereIn('id', $defectIds)->update([
-                "status" => "rejected"
+                "status" => "rejected",
+                "out_at" => Carbon::now(),
             ]);
 
             if ($availableReject > 0) {
@@ -339,7 +341,8 @@ class Reject extends Component
             }
             // update defect
             $defectSql = OutputFinishing::whereIn('id', $defectIds)->update([
-                "status" => "rejected"
+                "status" => "rejected",
+                "out_at" => Carbon::now(),
             ]);
 
             if ($availableReject > 0) {
@@ -366,16 +369,14 @@ class Reject extends Component
         if ($thisDefectReject > 0) {
             // remove from defect
             $defect = OutputFinishing::where('id', $defectId)->where("status", "defect");
-            $getDefect = OutputFinishing::selectRaw('output_check_finishing.*')->where('output_check_finishing.id', $defectId)->first();
 
             $updateDefect = $defect->update([
-                "status" => "rejected"
+                "status" => "rejected",
+                "out_at" => Carbon::now(),
             ]);
 
             if ($updateDefect) {
                 $this->emit('alert', 'success', "DEFECT dengan ID : ".$defectId." berhasil di REJECT.");
-
-                $this->emit('triggerDashboard', Auth::user()->line->username, Carbon::now()->format('Y-m-d'));
             } else {
                 $this->emit('alert', 'error', "Terjadi kesalahan. DEFECT dengan ID : ".$defectId." tidak berhasil di REJECT.");
             }
@@ -386,9 +387,13 @@ class Reject extends Component
 
     public function cancelReject($rejectId) {
         // delete from reject
-        $deleteReject = OutputFinishing::where('id', $rejectId)->update(["status" => "defect"]);
+        $updateDefect = OutputFinishing::where('id', $rejectId)->
+            update([
+                "status" => "defect",
+                "out_at" => DB::raw("null"),
+            ]);
 
-        if ($deleteReject && $updateDefect) {
+        if ($updateDefect) {
             $this->emit('alert', 'success', "REJECT dengan REJECT ID : ".$rejectId." dan berhasil di kembalikan ke DEFECT.");
         } else {
             $this->emit('alert', 'error', "Terjadi kesalahan. REJECT dengan REJECT ID : ".$rejectId." dan tidak berhasil dikembalikan ke DEFECT.");
@@ -477,7 +482,7 @@ class Reject extends Component
         // Defect areas
         $this->defectAreas = DefectArea::whereRaw("(hidden IS NULL OR hidden != 'Y')")->orderBy('defect_area')->get();
 
-        return view('livewire.reject', ['defects' => $defects, 'rejects' => $rejects, 'allDefectList' => $allDefectList]);
+        return view('livewire.manual.reject', ['defects' => $defects, 'rejects' => $rejects, 'allDefectList' => $allDefectList]);
     }
 
     public function dehydrate()

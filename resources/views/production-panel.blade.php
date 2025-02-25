@@ -1,8 +1,12 @@
-@extends('layouts.index', ['orderDate' => $orderInfo->tgl_plan])
+@extends('layouts.index', ['orderDate' => $orderInfo->tgl_plan, 'method' => $method])
 
 @section('content')
     {{-- Production Panel Livewire --}}
-    @livewire('production-panel', ['orderInfo' => $orderInfo, 'orderWsDetails' => $orderWsDetails])
+    @if ($method == "manual")
+        @livewire('manual.production-panel', ['orderInfo' => $orderInfo, 'orderWsDetails' => $orderWsDetails])
+    @else
+        @livewire('scan.production-panel', ['orderInfo' => $orderInfo, 'orderWsDetails' => $orderWsDetails])
+    @endif
 
     {{-- Select Defect Area --}}
     <div class="select-defect-area" id="select-defect-area">

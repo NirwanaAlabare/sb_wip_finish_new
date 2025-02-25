@@ -15,6 +15,12 @@
         </div>
     </div>
 
+    <div class="loading-container-fullscreen" wire:loading wire:target='toggleMethod'>
+        <div class="loading-container">
+            <div class="loading"></div>
+        </div>
+    </div>
+
     <div class="w-100" wire:loading wire:target='search, date, filterLine, filterBuyer, filterWs, filterProductType, filterStyle'>
         <div class="loading-container">
             <div class="loading"></div>

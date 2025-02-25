@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Livewire;
+namespace App\Http\Livewire\Manual;
 
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -131,6 +131,6 @@ class DefectHistory extends Component
         )->
         orderBy('output_check_finishing.updated_at', 'desc')->paginate(10);
 
-        return view('livewire.defect-history', ['defects' => $filteredDefects, 'productTypes' => $productTypes, 'defectTypes' => $defectTypes, 'defectAreas' => $defectAreas]);
+        return view('livewire.manual.defect-history', ['defects' => $filteredDefects, 'productTypes' => $productTypes, 'defectTypes' => $defectTypes, 'defectAreas' => $defectAreas]);
     }
 }

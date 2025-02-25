@@ -1,19 +1,20 @@
 <?php
 
-namespace App\Http\Livewire;
+namespace App\Http\Livewire\Manual;
 
 use Livewire\Component;
 use Illuminate\Session\SessionManager;
 use Illuminate\Support\Facades\Auth;
-use App\Models\SignalBit\Reject as RejectModel;
-use App\Models\SignalBit\Rft;
+use App\Models\SignalBit\Rft as RftModel;
 use App\Models\SignalBit\Defect;
+use App\Models\SignalBit\Rework;
+use App\Models\SignalBit\Reject;
 use App\Models\SignalBit\EndlineOutput;
-use App\Models\SignalBit\OutputFinishing;
+use App\Models\Nds\OutputPacking;
 use Carbon\Carbon;
 use DB;
 
-class Reject extends Component
+class Rft extends Component
 {
     public $orderInfo;
     public $orderWsDetailSizes;
@@ -21,6 +22,7 @@ class Reject extends Component
     public $outputInput;
     public $sizeInput;
     public $sizeInputText;
+    public $submitting;
 
     protected $rules = [
         'outputInput' => 'required|numeric|min:1',
@@ -35,16 +37,18 @@ class Reject extends Component
     ];
 
     protected $listeners = [
-        'updateWsDetailSizes' => 'updateWsDetailSizes'
+        'updateWsDetailSizes' => 'updateWsDetailSizes',
     ];
 
     public function mount(SessionManager $session, $orderWsDetailSizes)
     {
         $this->orderWsDetailSizes = $orderWsDetailSizes;
         $session->put('orderWsDetailSizes', $orderWsDetailSizes);
+        $this->output = 0;
         $this->outputInput = 1;
         $this->sizeInput = null;
         $this->sizeInputText = null;
+        $this->submitting = false;
     }
 
     public function updateWsDetailSizes()
@@ -55,6 +59,15 @@ class Reject extends Component
 
         $this->orderInfo = session()->get('orderInfo', $this->orderInfo);
         $this->orderWsDetailSizes = session()->get('orderWsDetailSizes', $this->orderWsDetailSizes);
+    }
+
+    public function updateOutput()
+    {
+        $this->output = RftModel::
+            leftJoin("so_det", "so_det.id", "=", "output_rfts_packing.so_det_id")->
+            where('master_plan_id', $this->orderInfo->id)->
+            where('status', 'normal')->
+            get();
     }
 
     public function clearInput()
@@ -84,23 +97,24 @@ class Reject extends Component
         $this->sizeInputText = $sizeText;
     }
 
-    public function submitInput(SessionManager $session)
+    public function submitInput()
     {
         $validatedData = $this->validate();
 
         $endlineOutputData = EndlineOutput::selectRaw("output_rfts.*")->leftJoin("master_plan", "master_plan.id", "=", "output_rfts.master_plan_id")->where("id_ws", $this->orderInfo->id_ws)->where("color", $this->orderInfo->color)->where("so_det_id", $this->sizeInput)->count();
-        $currentRftData = Rft::selectRaw("output_rfts_packing.*")->leftJoin("master_plan", "master_plan.id", "=", "output_rfts_packing.master_plan_id")->where('id_ws', $this->orderInfo->id_ws)->where("color", $this->orderInfo->color)->where("so_det_id", $this->sizeInput)->count();
+        $currentRftData = RftModel::selectRaw("output_rfts_packing.*")->leftJoin("master_plan", "master_plan.id", "=", "output_rfts_packing.master_plan_id")->where('id_ws', $this->orderInfo->id_ws)->where("color", $this->orderInfo->color)->where("so_det_id", $this->sizeInput)->count();
         $currentDefectData = Defect::selectRaw("output_defects_packing.*")->leftJoin("master_plan", "master_plan.id", "=", "output_defects_packing.master_plan_id")->where('id_ws', $this->orderInfo->id_ws)->where("color", $this->orderInfo->color)->where("so_det_id", $this->sizeInput)->where("defect_status", "defect")->count();
-        $currentRejectData = RejectModel::selectRaw("output_rejects_packing.*")->leftJoin("master_plan", "master_plan.id", "=", "output_rejects_packing.master_plan_id")->where('id_ws', $this->orderInfo->id_ws)->where("color", $this->orderInfo->color)->where("so_det_id", $this->sizeInput)->count();
+        $currentRejectData = Reject::selectRaw("output_rejects_packing.*")->leftJoin("master_plan", "master_plan.id", "=", "output_rejects_packing.master_plan_id")->where('id_ws', $this->orderInfo->id_ws)->where("color", $this->orderInfo->color)->where("so_det_id", $this->sizeInput)->count();
         $currentOutputData = $currentRftData+$currentDefectData+$currentRejectData;
         $balanceOutputData = $endlineOutputData-$currentOutputData;
 
         $additionalMessage = $balanceOutputData < $this->outputInput && $balanceOutputData > 0 ? "<b>".($this->outputInput - $balanceOutputData)."</b> output melebihi batas input." : null;
-        if ($balanceOutputData < $this->outputInput) {
-            $this->outputInput = $balanceOutputData;
-        }
+        // if ($balanceOutputData < $this->outputInput) {
+        //     $this->outputInput = $balanceOutputData;
+        // }
 
         $insertData = [];
+        $insertDataNds = [];
         if ($this->outputInput > 0) {
             for ($i = 0; $i < $this->outputInput; $i++)
             {
@@ -112,17 +126,29 @@ class Reject extends Component
                     'created_at' => Carbon::now(),
                     'updated_at' => Carbon::now()
                 ]);
+
+                array_push($insertDataNds, [
+                    'sewing_line' => $this->orderInfo->sewing_line,
+                    'master_plan_id' => $this->orderInfo->id,
+                    'so_det_id' => $this->sizeInput,
+                    'status' => 'NORMAL',
+                    'created_by' => Auth::user()->username,
+                    'created_at' => Carbon::now(),
+                    'updated_at' => Carbon::now()
+                ]);
             }
 
-            $insertReject = RejectModel::insert($insertData);
+            $insertRft = RftModel::insert($insertData);
 
-            if ($insertReject) {
+            $insertRftNds = OutputPacking::insert($insertDataNds);
+
+            if ($insertRft) {
                 $getSize = DB::table('so_det')
                     ->select('id', 'size')
                     ->where('id', $this->sizeInput)
                     ->first();
 
-                $this->emit('alert', 'success', $this->outputInput." REJECT output berukuran ".$getSize->size." berhasil terekam.");
+                $this->emit('alert', 'success', "<b>".$this->outputInput."</b> output berukuran <b>".$getSize->size."</b> berhasil terekam. ");
                 if ($additionalMessage) {
                     $this->emit('alert', 'error', $additionalMessage);
                 }
@@ -143,11 +169,13 @@ class Reject extends Component
         $this->orderWsDetailSizes = $session->get('orderWsDetailSizes', $this->orderWsDetailSizes);
 
         // Get total output
-        $this->output = RejectModel::
+        $this->output = RftModel::
+            leftJoin("so_det", "so_det.id", "=", "output_rfts_packing.so_det_id")->
             where('master_plan_id', $this->orderInfo->id)->
-            count();
+            where('status', 'normal')->
+            get();
 
-        return view('livewire.reject');
+        return view('livewire.manual.rft');
     }
 
     public function dehydrate()

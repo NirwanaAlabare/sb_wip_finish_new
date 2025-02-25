@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Livewire;
+namespace App\Http\Livewire\Manual;
 
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -298,6 +298,6 @@ class Rework extends Component
             where('output_check_finishing.defect_area_id', $this->massDefectArea)->
             groupBy('output_check_finishing.so_det_id', 'so_det.size')->get();
 
-        return view('livewire.rework' , ['defects' => $defects, 'reworks' => $reworks, 'allDefectList' => $allDefectList]);
+        return view('livewire.manual.rework' , ['defects' => $defects, 'reworks' => $reworks, 'allDefectList' => $allDefectList]);
     }
 }

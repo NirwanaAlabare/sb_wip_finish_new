@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Livewire;
+namespace App\Http\Livewire\Manual;
 
 use Livewire\Component;
 use Livewire\WithFileUploads;
@@ -272,7 +272,7 @@ class Defect extends Component
                 'defect_area_id' => $this->defectArea,
                 'defect_area_x' => $this->defectAreaPositionX,
                 'defect_area_y' => $this->defectAreaPositionY,
-                'created_by' => Auth::user()->username,
+                'created_by' => Auth::user()->id,
                 'created_at' => Carbon::now(),
                 'updated_at' => Carbon::now()
             ]);
@@ -318,6 +318,6 @@ class Defect extends Component
         // Defect areas
         $this->defectAreas = DefectArea::whereRaw("(hidden IS NULL OR hidden != 'Y')")->orderBy('defect_area')->get();
 
-        return view('livewire.defect');
+        return view('livewire.manual.defect');
     }
 }
