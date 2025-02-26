@@ -49,7 +49,7 @@
         </div>
         <div class="col-md-auto">
             <div class="mb-1" wire:ignore>
-                <a href="{{ $this->baseUrl."/production-panel/".$order->id."/manual" }}" class="btn btn-danger btn-sm w-auto fw-bold"><i class="fa-solid fa-rotate"></i> SCAN</a>
+                <a href="{{ $this->baseUrl."/production-panel/".$orderInfo->id."/manual" }}" class="btn btn-danger btn-sm w-auto fw-bold"><i class="fa-solid fa-rotate"></i> SCAN</a>
             </div>
         </div>
     </div>

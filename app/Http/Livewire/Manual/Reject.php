@@ -263,8 +263,12 @@ class Reject extends Component
         $availableReject = 0;
         $externalReject = 0;
 
-        $allDefect = OutputFinishing::selectRaw('output_check_finishing.id id, output_check_finishing.master_plan_id master_plan_id, output_check_finishing.so_det_id so_det_id, output_check_finishing.kode_numbering, output_defect_types.allocation')->
+        $allDefect = OutputFinishing::selectRaw('output_check_finishing.id id, output_check_finishing.master_plan_id master_plan_id, output_check_finishing.so_det_id so_det_id, output_check_finishing.kode_numbering, output_defect_types.allocation, output_defect_in_out.status in_out_status')->
             leftJoin('so_det', 'so_det.id', '=', 'output_check_finishing.so_det_id')->
+            leftJoin("output_defect_in_out", function ($join) {
+                $join->on("output_defect_in_out.defect_id", "=", "output_check_finishing.id");
+                $join->on("output_defect_in_out.output_type", "=", DB::raw("'qcf'"));
+            })->
             leftJoin('output_defect_types', 'output_defect_types.id', '=', 'output_check_finishing.defect_type_id')->
             where('output_check_finishing.status', 'defect')->
             where('output_check_finishing.master_plan_id', $this->orderInfo->id)->
@@ -273,12 +277,18 @@ class Reject extends Component
 
         if ($allDefect->count() > 0) {
             $defectIds = [];
-            foreach ($allDefect as $defect) {
-                // add defect ids
-                array_push($defectIds, $defect->id);
 
-                $availableReject += 1;
+            foreach ($allDefect as $defect) {
+                if ($defect->in_out_status != "defect") {
+                    // add defect ids
+                    array_push($defectIds, $defect->id);
+
+                    $availableReject += 1;
+                } else {
+                    $externalReject += 1;
+                }
             }
+
             // update defect
             $defectSql = OutputFinishing::whereIn('id', $defectIds)->update([
                 "status" => "rejected",
@@ -292,7 +302,7 @@ class Reject extends Component
             }
 
             if ($externalReject > 0) {
-                $this->emit('alert', 'warning', $externalReject." DEFECT masih di proses MANDING/SPOTCLEANING.");
+                $this->emit('alert', 'warning', $externalReject." DEFECT masih di proses MENDING/SPOTCLEANING.");
             }
 
         } else {
@@ -315,8 +325,12 @@ class Reject extends Component
         $availableReject = 0;
         $externalReject = 0;
 
-        $selectedDefect = OutputFinishing::selectRaw('output_check_finishing.id id, output_check_finishing.master_plan_id master_plan_id, output_check_finishing.so_det_id so_det_id, output_check_finishing.kode_numbering, output_defect_types.allocation, so_det.size')->
+        $selectedDefect = OutputFinishing::selectRaw('output_check_finishing.id id, output_check_finishing.master_plan_id master_plan_id, output_check_finishing.so_det_id so_det_id, output_check_finishing.kode_numbering, output_defect_types.allocation, so_det.size, output_defect_in_out.status in_out_status')->
             leftJoin('so_det', 'so_det.id', '=', 'output_check_finishing.so_det_id')->
+            leftJoin("output_defect_in_out", function ($join) {
+                $join->on("output_defect_in_out.defect_id", "=", "output_check_finishing.id");
+                $join->on("output_defect_in_out.output_type", "=", DB::raw("'qcf'"));
+            })->
             leftJoin('output_defect_types', 'output_defect_types.id', '=', 'output_check_finishing.defect_type_id')->
             where('output_check_finishing.status', 'defect')->
             where('output_check_finishing.master_plan_id', $this->orderInfo->id)->
@@ -324,13 +338,13 @@ class Reject extends Component
             where('output_check_finishing.defect_area_id', $this->massDefectArea)->
             where('output_check_finishing.so_det_id', $this->massSize)->
             whereNull('output_check_finishing.kode_numbering')->
-            take($this->massQty)->get();
+            take($this->massQty)->
+            get();
 
         if ($selectedDefect->count() > 0) {
             $defectIds = [];
             foreach ($selectedDefect as $defect) {
                 if ($defect->in_out_status != "defect") {
-
                     // add defect id array
                     array_push($defectIds, $defect->id);
 
@@ -342,7 +356,7 @@ class Reject extends Component
             // update defect
             $defectSql = OutputFinishing::whereIn('id', $defectIds)->update([
                 "status" => "rejected",
-                "out_at" => Carbon::now(),
+                "out_at" => Carbon::now()
             ]);
 
             if ($availableReject > 0) {
@@ -362,41 +376,52 @@ class Reject extends Component
     }
 
     public function submitReject($defectId) {
-        $externalReject = 0;
+        $externalRework = 0;
 
-        $thisDefectReject = OutputFinishing::where('id', $defectId)->where("status", "defect")->count();
+        $thisDefectRework = OutputFinishing::where('id', $defectId)->where('status', 'rejected')->count();
 
-        if ($thisDefectReject > 0) {
+        if ($thisDefectRework < 1) {
             // remove from defect
-            $defect = OutputFinishing::where('id', $defectId)->where("status", "defect");
+            $defect = OutputFinishing::where("status", "defect")->where('id', $defectId);
+            $getDefect = OutputFinishing::selectRaw('output_check_finishing.*, output_defect_in_out.status in_out_status')->
+                leftJoin("output_defect_in_out", function ($join) {
+                    $join->on("output_defect_in_out.defect_id", "=", "output_check_finishing.id");
+                    $join->on("output_defect_in_out.output_type", "=", DB::raw("'qcf'"));
+                })->
+                where("output_check_finishing.status", "defect")->
+                where('output_check_finishing.id', $defectId)->
+                first();
 
-            $updateDefect = $defect->update([
-                "status" => "rejected",
-                "out_at" => Carbon::now(),
-            ]);
+            if ($getDefect->in_out_status != 'defect') {
+                $updateDefect = $defect->update([
+                    "status" => "rejected",
+                    "out_at" => Carbon::now()
+                ]);
 
-            if ($updateDefect) {
-                $this->emit('alert', 'success', "DEFECT dengan ID : ".$defectId." berhasil di REJECT.");
+                if ($updateDefect) {
+                    $this->emit('alert', 'success', "DEFECT dengan ID : ".$defectId." berhasil di REJECT.");
+                } else {
+                    $this->emit('alert', 'error', "Terjadi kesalahan. DEFECT dengan ID : ".$defectId." tidak berhasil di REJECT.");
+                }
             } else {
-                $this->emit('alert', 'error', "Terjadi kesalahan. DEFECT dengan ID : ".$defectId." tidak berhasil di REJECT.");
+                $this->emit('alert', 'error', "DEFECT ini masih di proses MENDING/SPOTCLEANING. DEFECT dengan ID : ".$defectId." tidak berhasil di REJECT.");
             }
         } else {
-            $this->emit('alert', 'warning', "Defect tidak ditemukan.");
+            $this->emit('alert', 'warning', "Pencegahan data redundant. DEFECT dengan ID : ".$defectId." sudah ada di REJECT.");
         }
     }
 
     public function cancelReject($rejectId) {
-        // delete from reject
-        $updateDefect = OutputFinishing::where('id', $rejectId)->
-            update([
-                "status" => "defect",
-                "out_at" => DB::raw("null"),
-            ]);
+        // add to reject
+        $updateDefect = OutputFinishing::where('id', $rejectId)->update([
+            "status" => "defect",
+            "out_at" => null,
+        ]);
 
         if ($updateDefect) {
-            $this->emit('alert', 'success', "REJECT dengan REJECT ID : ".$rejectId." dan berhasil di kembalikan ke DEFECT.");
+            $this->emit('alert', 'success', "REJECT dengan ID : ".$rejectId." berhasil di kembalikan ke DEFECT.");
         } else {
-            $this->emit('alert', 'error', "Terjadi kesalahan. REJECT dengan REJECT ID : ".$rejectId." dan tidak berhasil dikembalikan ke DEFECT.");
+            $this->emit('alert', 'error', "Terjadi kesalahan. REJECT ID : ".$rejectId." tidak berhasil dikembalikan ke DEFECT.");
         }
     }
 

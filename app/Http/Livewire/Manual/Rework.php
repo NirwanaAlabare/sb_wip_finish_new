@@ -57,35 +57,6 @@ class Rework extends Component
         'updateWsDetailSizes' => 'updateWsDetailSizes'
     ];
 
-    // public function fixMissingForeignKey() {
-        // $dataRft = DB::select("SELECT output_defects.defect_status defect_status, output_defects.id defect_id, output_defects.master_plan_id defect_mp, output_rfts.`status` rft_status, output_rfts.id rft_id, output_rfts.master_plan_id rft_mp, output_rfts.rework_id rft_rework_id FROM output_rfts
-        // left join output_reworks on output_reworks.id = output_rfts.rework_id
-        // left join output_defects on output_defects.id = output_reworks.defect_id
-        // where output_rfts.master_plan_id IS NULL and output_rfts.`status` = 'rework' and DATE(output_rfts.updated_at) = CURRENT_DATE()");
-
-        // foreach ($dataRft as $rft) {
-        //     $rftUpdate = Rft::find($rft->rft_id);
-        //     $rftUpdate->master_plan_id = $rft->defect_mp;
-        //     $rftUpdate->save();
-        //     \Log::info($rftUpdate);
-        // }
-
-        // $dataDefect = array_values($dataDefect->toArray());
-
-        // $dataRework = ReworkModel::selectRaw('output_reworks.id as id')->whereRaw("DATE(updated_at) = CURRENT_DATE() and defect_id IS NULL")->orderBy('id', 'asc')->get();
-
-        // $dataRework = array_values($dataRework->toArray());
-
-        // \Log::info($dataRework->count());
-        // \Log::info($dataDefect->count());
-
-        // for ($i = 0; $i < 165; $i++) {
-        //     $rework = ReworkModel::find($dataRework[$i]['id']);
-        //     $rework->defect_id = $dataDefect[$i]['id'];
-        //     $rework->save();
-        // }
-    // }
-
     public function updateWsDetailSizes()
     {
         $this->orderInfo = session()->get('orderInfo', $this->orderInfo);
@@ -145,18 +116,53 @@ class Rework extends Component
     }
 
     public function submitAllRework() {
-        // update defect
-        $updateDefect = OutputFinishing::where('master_plan_id', $this->orderInfo->id)->
-            where('status', 'defect')->
-            update([
+        $availableRework = 0;
+        $externalRework = 0;
+
+        $allDefect = OutputFinishing::selectRaw('output_check_finishing.id id, output_check_finishing.master_plan_id master_plan_id, output_check_finishing.so_det_id so_det_id, output_check_finishing.kode_numbering, output_defect_types.allocation, output_defect_in_out.status in_out_status')->
+            leftJoin('so_det', 'so_det.id', '=', 'output_check_finishing.so_det_id')->
+            leftJoin("output_defect_in_out", function ($join) {
+                $join->on("output_defect_in_out.defect_id", "=", "output_check_finishing.id");
+                $join->on("output_defect_in_out.output_type", "=", DB::raw("'qcf'"));
+            })->
+            leftJoin('output_defect_types', 'output_defect_types.id', '=', 'output_check_finishing.defect_type_id')->
+            where('output_check_finishing.status', 'defect')->
+            where('output_check_finishing.master_plan_id', $this->orderInfo->id)->
+            whereNull('output_check_finishing.kode_numbering')->
+            get();
+
+        if ($allDefect->count() > 0) {
+            $defectIds = [];
+
+            foreach ($allDefect as $defect) {
+                if ($defect->in_out_status != "defect") {
+                    // add defect ids
+                    array_push($defectIds, $defect->id);
+
+                    $availableRework += 1;
+                } else {
+                    $externalRework += 1;
+                }
+            }
+
+            // update defect
+            $defectSql = OutputFinishing::whereIn('id', $defectIds)->update([
                 "status" => "reworked",
-                "out_at" => Carbon::now()
+                "out_at" => Carbon::now(),
             ]);
 
-        if ($updateDefect) {
-            $this->emit('alert', 'success', "Semua DEFECT berhasil di REWORK");
+            if ($availableRework > 0) {
+                $this->emit('alert', 'success', $availableRework." DEFECT berhasil di REWORK");
+            } else {
+                $this->emit('alert', 'error', "Terjadi kesalahan. DEFECT tidak berhasil di REWORK.");
+            }
+
+            if ($externalRework > 0) {
+                $this->emit('alert', 'warning', $externalRework." DEFECT masih di proses MENDING/SPOTCLEANING.");
+            }
+
         } else {
-            $this->emit('alert', 'error', "Terjadi kesalahan. DEFECT tidak berhasil di REWORK.");
+            $this->emit('alert', 'warning', "Data tidak ditemukan.");
         }
     }
 
@@ -172,29 +178,53 @@ class Rework extends Component
     }
 
     public function submitMassRework() {
-        $selectedDefect = OutputFinishing::selectRaw('output_check_finishing.*, so_det.size as size')->
+        $availableRework = 0;
+        $externalRework = 0;
+
+        $selectedDefect = OutputFinishing::selectRaw('output_check_finishing.id id, output_check_finishing.master_plan_id master_plan_id, output_check_finishing.so_det_id so_det_id, output_check_finishing.kode_numbering, output_defect_types.allocation, so_det.size, output_defect_in_out.status in_out_status')->
             leftJoin('so_det', 'so_det.id', '=', 'output_check_finishing.so_det_id')->
-            whereNull('output_check_finishing.kode_numbering')->
+            leftJoin("output_defect_in_out", function ($join) {
+                $join->on("output_defect_in_out.defect_id", "=", "output_check_finishing.id");
+                $join->on("output_defect_in_out.output_type", "=", DB::raw("'qcf'"));
+            })->
+            leftJoin('output_defect_types', 'output_defect_types.id', '=', 'output_check_finishing.defect_type_id')->
             where('output_check_finishing.status', 'defect')->
             where('output_check_finishing.master_plan_id', $this->orderInfo->id)->
             where('output_check_finishing.defect_type_id', $this->massDefectType)->
             where('output_check_finishing.defect_area_id', $this->massDefectArea)->
             where('output_check_finishing.so_det_id', $this->massSize)->
-            take($this->massQty)->get();
+            whereNull('output_check_finishing.kode_numbering')->
+            take($this->massQty)->
+            get();
 
         if ($selectedDefect->count() > 0) {
+            $defectIds = [];
+            foreach ($selectedDefect as $defect) {
+                if ($defect->in_out_status != "defect") {
+                    // add defect id array
+                    array_push($defectIds, $defect->id);
+
+                    $availableRework += 1;
+                } else {
+                    $externalRework += 1;
+                }
+            }
             // update defect
-            $defectSql = OutputFinishing::whereIn('id', $selectedDefect->pluck("id"))->update([
+            $defectSql = OutputFinishing::whereIn('id', $defectIds)->update([
                 "status" => "reworked",
-                "out_at" => Carbon::now(),
+                "out_at" => Carbon::now()
             ]);
 
-            if ($selectedDefect->count() > 0) {
+            if ($availableRework > 0) {
                 $this->emit('alert', 'success', "DEFECT dengan Ukuran : ".$selectedDefect[0]->size.", Tipe : ".$this->massDefectTypeName." dan Area : ".$this->massDefectAreaName." berhasil di REWORK sebanyak ".$selectedDefect->count()." kali.");
 
                 $this->emit('hideModal', 'massRework');
             } else {
                 $this->emit('alert', 'error', "Terjadi kesalahan. DEFECT dengan Ukuran : ".$selectedDefect[0]->size.", Tipe : ".$this->massDefectTypeName." dan Area : ".$this->massDefectAreaName." tidak berhasil di REWORK.");
+            }
+
+            if ($externalRework > 0) {
+                $this->emit('alert', 'warning', $externalRework." DEFECT masih ada yang di proses MENDING/SPOTCLEANING.");
             }
         } else {
             $this->emit('alert', 'warning', "Data tidak ditemukan.");
@@ -202,31 +232,50 @@ class Rework extends Component
     }
 
     public function submitRework($defectId) {
-        // remove from defect
-        $defect = OutputFinishing::where('id', $defectId)->
-            update([
-                "status" => "reworked",
-                "out_at" => Carbon::now(),
-            ]);
+        $externalRework = 0;
 
-        if ($defect) {
-            $this->emit('alert', 'success', "DEFECT dengan ID : ".$defectId." berhasil di REWORK.");
+        $thisDefectRework = OutputFinishing::where('id', $defectId)->where('status', 'reworked')->count();
+
+        if ($thisDefectRework < 1) {
+            // remove from defect
+            $defect = OutputFinishing::where("status", "defect")->where('id', $defectId);
+            $getDefect = OutputFinishing::selectRaw('output_check_finishing.*, output_defect_in_out.status in_out_status')->
+                leftJoin("output_defect_in_out", function ($join) {
+                    $join->on("output_defect_in_out.defect_id", "=", "output_check_finishing.id");
+                    $join->on("output_defect_in_out.output_type", "=", DB::raw("'qcf'"));
+                })->
+                where("output_check_finishing.status", "defect")->where('output_check_finishing.id', $defectId)->first();
+
+            if ($getDefect->in_out_status != 'defect') {
+                $updateDefect = $defect->update([
+                    "status" => "reworked",
+                    "out_at" => Carbon::now()
+                ]);
+
+                if ($updateDefect) {
+                    $this->emit('alert', 'success', "DEFECT dengan ID : ".$defectId." berhasil di REWORK.");
+                } else {
+                    $this->emit('alert', 'error', "Terjadi kesalahan. DEFECT dengan ID : ".$defectId." tidak berhasil di REWORK.");
+                }
+            } else {
+                $this->emit('alert', 'error', "DEFECT ini masih di proses MENDING/SPOTCLEANING. DEFECT dengan ID : ".$defectId." tidak berhasil di REWORK.");
+            }
         } else {
-            $this->emit('alert', 'error', "Terjadi kesalahan. DEFECT dengan ID : ".$defectId." tidak berhasil di REWORK.");
+            $this->emit('alert', 'warning', "Pencegahan data redundant. DEFECT dengan ID : ".$defectId." sudah ada di REWORK.");
         }
     }
 
-    public function cancelRework($defectId) {
+    public function cancelRework($reworkId) {
         // add to defect
-        $updateDefect = OutputFinishing::where('id', $defectId)->update([
+        $updateDefect = OutputFinishing::where('id', $reworkId)->update([
             "status" => "defect",
             "out_at" => null,
         ]);
 
         if ($updateDefect) {
-            $this->emit('alert', 'success', "REWORK dengan ID : ".$defectId." berhasil di kembalikan ke DEFECT.");
+            $this->emit('alert', 'success', "REWORK dengan ID : ".$reworkId." berhasil di kembalikan ke DEFECT.");
         } else {
-            $this->emit('alert', 'error', "Terjadi kesalahan. REWORK ID : ".$defectId." tidak berhasil dikembalikan ke DEFECT.");
+            $this->emit('alert', 'error', "Terjadi kesalahan. REWORK ID : ".$reworkId." tidak berhasil dikembalikan ke DEFECT.");
         }
     }
 
@@ -248,6 +297,7 @@ class Rework extends Component
             leftJoin('output_defect_types', 'output_defect_types.id', '=', 'output_check_finishing.defect_type_id')->
             where('output_check_finishing.status', 'defect')->
             where('output_check_finishing.master_plan_id', $this->orderInfo->id)->
+            whereNull('output_check_finishing.kode_numbering')->
             whereRaw("
                 (
                     output_defect_types.defect_type LIKE '%".$this->allDefectListFilter."%' OR
@@ -265,6 +315,7 @@ class Rework extends Component
             leftJoin('output_defect_types', 'output_defect_types.id', '=', 'output_check_finishing.defect_type_id')->
             where('output_check_finishing.status', 'defect')->
             where('output_check_finishing.master_plan_id', $this->orderInfo->id)->
+            whereNull('output_check_finishing.kode_numbering')->
             whereRaw("(
                 output_check_finishing.id LIKE '%".$this->searchDefect."%' OR
                 so_det.size LIKE '%".$this->searchDefect."%' OR
@@ -281,6 +332,7 @@ class Rework extends Component
             leftJoin('output_defect_types', 'output_defect_types.id', '=', 'output_check_finishing.defect_type_id')->
             where('output_check_finishing.status', 'reworked')->
             where('output_check_finishing.master_plan_id', $this->orderInfo->id)->
+            whereNull('output_check_finishing.kode_numbering')->
             whereRaw("(
                 output_check_finishing.id LIKE '%".$this->searchRework."%' OR
                 so_det.size LIKE '%".$this->searchRework."%' OR
