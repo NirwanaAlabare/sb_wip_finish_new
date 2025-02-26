@@ -341,7 +341,7 @@ class Reject extends Component
                     'defect_area_id' => $this->rejectArea,
                     'defect_area_x' => $this->rejectAreaPositionX,
                     'defect_area_y' => $this->rejectAreaPositionY,
-                    'created_by' => Auth::user()->id,
+                    'created_by' => Auth::user()->username,
                     'created_at' => Carbon::now(),
                     'updated_at' => Carbon::now(),
                     'out_at' => Carbon::now(),
@@ -475,7 +475,7 @@ class Reject extends Component
                             'created_at' => Carbon::now(),
                             'updated_at' => Carbon::now(),
                             'out_at' => Carbon::now(),
-                            'created_by' => Auth::user()->id
+                            'created_by' => Auth::user()->username
                         ]);
 
                         $success += 1;

@@ -253,7 +253,7 @@ class Defect extends Component
 
             $this->emit('showModal', 'defect');
         } else {
-            $this->emit('alert', 'error', "Output packing-line tidak bisa melebihi endline.");
+            $this->emit('alert', 'error', "Output finish-line tidak bisa melebihi endline.");
         }
     }
 
@@ -272,7 +272,7 @@ class Defect extends Component
                 'defect_area_id' => $this->defectArea,
                 'defect_area_x' => $this->defectAreaPositionX,
                 'defect_area_y' => $this->defectAreaPositionY,
-                'created_by' => Auth::user()->id,
+                'created_by' => Auth::user()->username,
                 'created_at' => Carbon::now(),
                 'updated_at' => Carbon::now()
             ]);

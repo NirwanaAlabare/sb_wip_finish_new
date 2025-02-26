@@ -467,7 +467,7 @@ class Rework extends Component
                             $createRework = ReworkModel::create([
                                 'defect_id' => $scannedDefectData->id,
                                 'status' => 'NORMAL',
-                                "created_by" => Auth::user()->id
+                                "created_by" => Auth::user()->username
                             ]);
 
                             array_push($defectIds, $scannedDefectData->id);
@@ -481,7 +481,7 @@ class Rework extends Component
                                 'status' => 'REWORK',
                                 'created_at' => Carbon::now(),
                                 'updated_at' => Carbon::now(),
-                                "created_by" => Auth::user()->id
+                                "created_by" => Auth::user()->username
                             ]);
 
                             $success += 1;

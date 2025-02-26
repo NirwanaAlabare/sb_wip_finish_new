@@ -232,7 +232,7 @@ class ProductionPanel extends Component
                         'output_id' => $getDefect->defect_id,
                         'output_type' => $getDefect->status,
                         'keterangan' => 'defect',
-                        'undo_by' => Auth::user()->id
+                        'undo_by' => Auth::user()->username
                     ]);
 
                     $deleteDefect = OutputFinishing::find($getDefect->id)->delete();
@@ -271,7 +271,7 @@ class ProductionPanel extends Component
                         'output_id' => $reject->id,
                         'output_type' => $reject->status,
                         'keterangan' => 'reject',
-                        'undo_by' => Auth::user()->id
+                        'undo_by' => Auth::user()->username
                     ]);
                 }
 
@@ -312,7 +312,7 @@ class ProductionPanel extends Component
                         'output_id' => $defect->defect_id,
                         'output_type' => $defect->status,
                         'keterangan' => 'rework',
-                        'undo_by' => Auth::user()->id
+                        'undo_by' => Auth::user()->username
                     ]);
                 }
 
@@ -426,7 +426,7 @@ class ProductionPanel extends Component
 
     public function deleteRedundant() {
         $redundantData = DB::select(DB::raw(
-            "select defect_id, jml from (select defect_id, COUNT(defect_id) jml from (SELECT a.* from output_reworks a inner join output_defects c on c.id = a.defect_id inner join master_plan b on b.id = c.master_plan_id where b.sewing_line = '".(Auth::user()->Groupp == 'SEWING' ? "b.sewing_line = '".strtoupper(Auth::user()->username)."' and " : "")."' and DATE_FORMAT(a.created_at, '%Y-%m-%d') = CURRENT_DATE() order by a.defect_id asc) a GROUP BY a.defect_id) a where a.jml > 1"
+            "select defect_id, jml from (select defect_id, COUNT(defect_id) jml from (SELECT a.* from output_reworks a inner join output_defects c on c.id = a.defect_id inner join master_plan b on b.id = c.master_plan_id where b.sewing_line = '".(Auth::user()->username == 'SEWING' ? "b.sewing_line = '".strtoupper(Auth::user()->username)."' and " : "")."' and DATE_FORMAT(a.created_at, '%Y-%m-%d') = CURRENT_DATE() order by a.defect_id asc) a GROUP BY a.defect_id) a where a.jml > 1"
         ));
 
         foreach ($redundantData as $redundant) {
