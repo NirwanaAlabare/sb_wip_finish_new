@@ -82,7 +82,7 @@
                                     @php
                                         $outputProgress = $order->target > 0 ? floatval($order->progress)/floatval($order->target) * 100 : 0;
                                     @endphp
-                                    <div class="progress-bar fw-bold {{ $outputProgress > 100 ? 'bg-rft' : 'bg-success' }}" style="width:{{  $outputProgress }}%">{{ $outputProgress > 100 ? 'TARGET TERLAMPAUI' : '' }}</div>
+                                    <div class="progress-bar fw-bold {{ $outputProgress > 100 ? 'bg-rft' : 'bg-danger' }}" style="width:{{  $outputProgress }}%">{{ $outputProgress > 100 ? 'TARGET TERLAMPAUI' : '' }}</div>
                                 </div>
                             </div>
                         </div>
