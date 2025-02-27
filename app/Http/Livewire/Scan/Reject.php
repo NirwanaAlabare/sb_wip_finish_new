@@ -216,7 +216,6 @@ class Reject extends Component
                 $join->on("output_defect_in_out.output_type", "=", DB::raw("'qcf'"));
             })->
             leftJoin("master_plan", "master_plan.id", "=", "output_check_finishing.master_plan_id")->
-            where("output_check_finishing.status", "defect")->
             where("output_check_finishing.kode_numbering", $this->numberingInput)->
             first();
 
@@ -311,7 +310,6 @@ class Reject extends Component
                     $join->on("output_defect_in_out.output_type", "=", DB::raw("'qcf'"));
                 })->
                 leftJoin("master_plan", "master_plan.id", "=", "output_check_finishing.master_plan_id")->
-                where("output_check_finishing.status", "defect")->
                 where("output_check_finishing.kode_numbering", $this->numberingInput)->
                 first();
 
