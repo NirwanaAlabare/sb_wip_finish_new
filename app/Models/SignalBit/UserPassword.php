@@ -3,7 +3,7 @@
 namespace App\Models\SignalBit;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Foundation\Auth\UserPassword as Authenticatable;
+use Illuminate\Foundation\Auth\User as Authenticatable;
 
 class UserPassword extends Authenticatable
 {
