@@ -92,9 +92,9 @@
                                         <div class="all-defect-area-img-point" data-x="{{ floatval($defectPosition->defect_area_x) }}" data-y="{{ floatval($defectPosition->defect_area_y) }}"></div>
                                     @endforeach
                                     @if ($allDefectImage)
-                                        <img src="http://10.10.5.62:8080/erp/pages/prod_new/upload_files/{{ $allDefectImage->gambar }}" class="all-defect-area-img" id="all-defect-area-img" alt="defect image">
+                                        <img src="http://10.10.5.62:8080/erp/pages/prod_new/upload_files/{{ $allDefectImage->gambar }}" class="all-defect-area-img" id="all-defect-area-img-rework" alt="defect image">
                                     @else
-                                        <img src="/assets/images/notfound.png" class="all-defect-area-img" alt="defect image">
+                                        <img src="/assets/images/notfound.png" class="all-defect-area-img" id="all-defect-area-img-rework" alt="defect image">
                                     @endif
                                 </div>
                             </div>
